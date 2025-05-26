@@ -2,7 +2,7 @@
   "type": "grid",
   "data": {
     "columns": 26,
-    "rowHeight": 20,
+    "rowHeight": 25,
     "maxWidth": 2900,
     "bordered": true,
     "cells": [
@@ -42,22 +42,21 @@
       {
         "position": [
           0,
-          12,
-          13,
-          23
-        ]
+          7,
+          11,
+          26
+        ],
+        "scrollable": true
       },
       {
         "position": [
-          13,
-          9,
+          12,
+          8,
           13,
           26
         ],
-        "side": "right"
-      },
-      {
-        "position": null
+        "scrollable": true,
+        "side": "left"
       },
       {
         "position": null

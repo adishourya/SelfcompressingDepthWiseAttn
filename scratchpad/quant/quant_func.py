@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.11.13"
+__generated_with = "0.11.21"
 app = marimo.App(width="medium", layout_file="layouts/quant_func.grid.json")
 
 
@@ -11,7 +11,7 @@ def _():
     import numpy as np
     import matplotlib.pyplot as plt
     import matplotx
-    plt.style.use(matplotx.styles.dracula)
+    plt.style.use(matplotx.styles.pacoty)
     import sys
 
     sys.path.append("../../")
@@ -30,23 +30,23 @@ def _(torch):
 
 @app.cell(hide_code=True)
 def _(mo):
-    decimal = decimal_places = mo.ui.slider(1,1000,10)
+    decimal = mo.ui.slider(1,1000,10)
     bit_depth = mo.ui.slider(0,8,0.5)
     scale = mo.ui.slider(0,14,0.5)
     tolerance = mo.ui.slider(1,100,10)
 
 
     mo.md(f" Choose x precision:{decimal} , (b)it_depth : {bit_depth} , scal(e) :{scale} , tolerance = {tolerance}")
-    return bit_depth, decimal, decimal_places, scale, tolerance
+    return bit_depth, decimal, scale, tolerance
 
 
 @app.cell(hide_code=True)
 def _(bit_depth, decimal, mo, scale, tolerance, torch):
     # pass through rounding function
-    tol = 1 / tolerance.value
     x = torch.tensor(8.34567892 * (1/decimal.value))
     y = -1 * x
-    mo.md(f"Input x = {x,y} , b = {bit_depth.value} , e = {-1*scale.value} , tol = {tol} ")
+    tol = (1 / tolerance.value) * x
+    mo.md(f"""Input x = {x,y} b = {bit_depth.value} , e = {-1*scale.value} , tol = {tol} """)
     return tol, x, y
 
 
@@ -64,22 +64,22 @@ def _(bit_depth, mo, quant_spec, scale, tol, x, y):
 
 @app.cell
 def _(bit_depth, quant_spec, scale, torch):
-    xs = torch.linspace(-10,10,1000)
+    xs = torch.linspace(-3,3,1000)
     ys = quant_spec(xs,b=bit_depth.value,e=-1*scale.value)
     return xs, ys
 
 
 @app.cell(hide_code=True)
 def _(out1, out2, plt, x, xs, y, ys):
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10,10))
+
     plt.plot(xs,ys)
-    plt.annotate("x",xy=(x,out1))
-    plt.annotate("y",xy=(y,out2))
+    plt.annotate("x",xy=(x,out1),fontsize=20)
+    plt.annotate("y",xy=(y,out2),fontsize=20)
     plt.title(f"Linspaced Input:{xs[0]}..{xs[-1]}")
-    plt.xlabel("x inputs")
+    plt.xlabel("inputs")
     # plt.gca()
     fig
-
     return (fig,)
 
 
@@ -92,20 +92,14 @@ def _(plt, quant_spec, tol, torch, x):
     Z = quant_spec(x, B, E)
     close = torch.where((Z>= x-tol) & (Z<=x+tol),1.0,0.0)
 
-    fig2 = plt.figure()
+    fig2 = plt.figure(figsize=(10,10))
     plt.contourf(B,E,close,cmap="coolwarm")
     plt.colorbar()
-    plt.title(f"For input example:{x}")
-    plt.xlabel("b")
-    plt.ylabel("e")
+    plt.title(f"Contour plot | input:{x:0.6f} | within {x-tol, x+tol}")
+    plt.xlabel("(b)it depth")
+    plt.ylabel("scal(e)")
     fig2
     return B, E, Z, b_vals, close, e_vals, fig2
-
-
-@app.cell
-def _(close):
-    close
-    return
 
 
 @app.cell
