@@ -1,44 +1,33 @@
 import torch
 import matplotlib.pyplot as plt
-from tqdm import tqdm
+import einops
 
+from quant_func import STERound
+from tqdm import tqdm
+import sympy as sp
+
+# aliases
+torch.steRound = STERound.apply
 torch.gelu = torch.nn.functional.gelu
 torch.mul_reduce = torch.prod
 
-
-class STERound(torch.autograd.Function):
-    """
-    same gradient as parent node. Also called as pass through gradient.
-    """
-    @staticmethod
-    def forward(ctx,x):
-        return torch.round(x)
-
-    @staticmethod
-    def backward(ctx,upstream):
-        """
-        local jacobian is 1.
-        """
-        return upstream
-
-torch.steRound = STERound.apply
-
+torch.manual_seed(10)
 
 class Qconv(torch.nn.Module):
-    def  __init__ (self,in_channels,out_channels,kernel_size=3,depth=-8,scale=1.5):
+    def  __init__ (self,in_channels,out_channels,kernel_size=3,b=2.0,e=-8.0,):
         """
         # weight tying exp_bits and depth_bits
         # note number  of output  channels  is number of filterkernels  launched
-        # we will try to not just compress  but take out entire filter kernels...
-        # these asserts them to be pytorch tensors
+        # we will try to not just compress precision but take out entire filter kernels if needed.
         """
         super().__init__()
        
+       # these asserts them to be pytorch tensors
         in_channels = torch.as_tensor(in_channels)
         out_channels = torch.as_tensor(out_channels)
         kernel_size = torch.as_tensor(kernel_size)
-        depth = torch.as_tensor(depth)
-        scale= torch.as_tensor(scale)
+        b = torch.as_tensor(b)
+        e= torch.as_tensor(e)
 
         # fan_in is just in_channels
         weight_scale = 1/ torch.sqrt(in_channels*out_channels*out_channels)
@@ -46,15 +35,15 @@ class Qconv(torch.nn.Module):
         self.weight = self.weight.uniform_(-weight_scale,weight_scale)
 
         # 1 for each kernel (out_channel).. to perform safe broadcasting we fill the rest of them with 1
-        self.exp_bit = torch.ones(out_channels,1,1,1)*-8.0
-        self.depth_bit = torch.ones(out_channels,1,1,1)*2
+        self.exp_bit = torch.ones(out_channels,1,1,1)*e
+        self.depth_bit = torch.ones(out_channels,1,1,1)*b
 
         # exp and depth also as trainables
         self.weight = torch.nn.Parameter(self.weight)
         self.exp_bit = torch.nn.Parameter(self.exp_bit)
         self.depth_bit = torch.nn.Parameter(self.depth_bit)
         ...
-    
+
     def size_layer(self):
         """
         given by equation 4 : I*H*W * sum(b(i,l)
@@ -74,12 +63,12 @@ class Qconv(torch.nn.Module):
         x_round = torch.steRound(x_clipped)
         return torch.exp2(self.exp_bit) * x_round
 
-    
 
     def __call__(self,x):
         # quantize every forward pass
         W = self._quantized_weight()
         # assert self.weight.shape==W.shape
-        # valid padding or should we do same.. paper does not say
+        # valid padding or should we do same..
         return torch.nn.functional.conv2d(x,W,padding=1)
-
+        
+        

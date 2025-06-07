@@ -1,23 +1,48 @@
 import marimo
 
 __generated_with = "0.11.21"
-app = marimo.App(width="medium", layout_file="layouts/quant_func.grid.json")
+app = marimo.App(
+    width="medium",
+    layout_file="layouts/quant_func_marimo.grid.json",
+)
 
 
 @app.cell
 def _():
+    import sys
+    sys.path.append("../../")
+
     import marimo as mo
     import torch
     import numpy as np
     import matplotlib.pyplot as plt
     import matplotx
     plt.style.use(matplotx.styles.pacoty)
-    import sys
+    from compression.quant_func import STERound
+    # from compression.qutils import quant_spec
+    #alias
+    torch.steRound = STERound.apply
+    return STERound, matplotx, mo, np, plt, sys, torch
 
-    sys.path.append("../../")
-    from compression.qmodules import STERound
-    from compression.qutils import quant_spec
-    return STERound, matplotx, mo, np, plt, quant_spec, sys, torch
+
+@app.cell
+def _(torch):
+    def quant_spec(x,b=-8.0,e=2.0):
+        """
+        # this is just a spec function..
+        # register a method for quantization for each module. just to be safe
+        """
+        b = torch.as_tensor(b)
+        e = torch.as_tensor(e)
+
+        b = torch.relu(b)
+        x_upscaled = x/torch.exp2(e)
+        half = torch.exp2(b -1)
+        x_clipped = torch.clip(x_upscaled,-1*half,half-1)
+        x_round = torch.steRound(x_clipped)
+        return torch.exp2(e) * x_round
+
+    return (quant_spec,)
 
 
 @app.cell(hide_code=True)
