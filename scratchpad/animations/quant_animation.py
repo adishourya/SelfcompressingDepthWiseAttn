@@ -32,10 +32,13 @@ class QuantizationAnimation(MovingCameraScene):
             y_axis_config={"numbers_to_include":[y_init[0],y_init[-1]]},
             tips=True,
             )
+        ax1_copy =ax1.copy()
         
 
         # first step
-        plane=NumberPlane()
+        plane1=NumberPlane(x_range=(x_input[0],x_input[-1],1),
+                           y_range=(y_init[0],y_init[-1],1),
+                           background_line_style={"stroke_width": 1, "stroke_color": GRAY_BROWN},)
         graph1 = ax1.plot_line_graph(x_input, y_init, line_color=ORANGE,vertex_dot_radius=0)
 
         # scale it down
@@ -87,7 +90,7 @@ class QuantizationAnimation(MovingCameraScene):
         graph5 = ax5.plot_line_graph(x_input,y_resut,line_color=PURPLE,vertex_dot_radius=0)
 
         # linspaced inputs
-        title = Text(f"Quantization Fnction{b_bit=}{e_bit=}",font_size=14)
+        title = Text(f"Quantization Fnction\n{b_bit=}{e_bit=}",font_size=14)
         title.to_corner(UR)
 
 
@@ -97,12 +100,12 @@ class QuantizationAnimation(MovingCameraScene):
         graph4_title =Text("Quantize torch.round (STE)",font_size=20,font="Simple Nerd Font",color=GREEN).to_corner(UL)
         graph5_title =Text("Scale Down * torch.exp2(e)",font_size=20,font="Simple Nerd Font",color=PURPLE).to_corner(UL)
 
-        self.add(plane,ax1,title)
+        self.add(plane1,ax1,title)
         self.wait(2)
         self.play(FadeIn(graph1),Write(graph1_title))
         self.wait(2)
         # scaled up with exp bits
-        self.play(Transform(ax1,ax2),Transform(graph1,graph2),Transform(graph1_title,graph2_title))
+        self.play(Transform(ax1,ax2),ScaleInPlace(plane1,np.exp2(e_bit)),Transform(graph1,graph2),Transform(graph1_title,graph2_title))
         self.wait(2)
         # clipped
         self.play(Transform(graph1,graph3),Transform(graph1_title,graph3_title))
@@ -116,9 +119,9 @@ class QuantizationAnimation(MovingCameraScene):
         self.play(self.camera.frame.animate.scale(10).move_to(ORIGIN), run_time=1)
         self.wait(2)
         # rescale
-        self.play(Transform(ax1,ax5),Transform(graph1,graph5),Transform(graph1_title,graph5_title))
-        self.wait(2)
+        self.play(Transform(ax1,ax1_copy),ScaleInPlace(plane1,1/np.exp2(e_bit)),Transform(graph1,graph5),Transform(graph1_title,graph5_title))
+        self.wait(5)
 
 
 if __name__ == "__main__":
-    os.system("manim -ql quant_animation.py QuantizationAnimation")
+    os.system("manim -qh quant_animation.py QuantizationAnimation")
