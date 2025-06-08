@@ -56,10 +56,13 @@ class Matrix(manim.Scene):
         wi2 = manim.MobjectMatrix(w_expr2)
         wi_2g = manim.VGroup(wi2, wi_label.copy()).scale(0.8)
 
+        # Define distinct colors for each row
+        row_colors = [manim.RED, manim.BLUE, manim.GREEN, manim.YELLOW, manim.PURPLE]
+
         # Modified weights where 5th row (i=4) is zeroed out
         w_expr3 = [
             [
-                manim.MathTex("0", color=manim.GRAY) if i == 3 else manim.MathTex(f"q_{{{i}{j}}}")
+                manim.MathTex("0", color=row_colors[i]) if i == 3 else manim.MathTex(f"q_{{{i}{j}}}",color=row_colors[i])
                 for j in range(6)
             ]
             for i in range(5)
@@ -67,8 +70,6 @@ class Matrix(manim.Scene):
         wi3 = manim.MobjectMatrix(w_expr3)
         wi_3g = manim.VGroup(wi3, wi_label.copy()).scale(0.8)
 
-        # Define distinct colors for each row
-        row_colors = [manim.RED, manim.BLUE, manim.GREEN, manim.YELLOW, manim.PURPLE]
 
         # Modified weight matrix: q_i(w_{ij}) with different row colors
         w_expr4 = [
