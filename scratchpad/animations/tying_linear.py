@@ -89,7 +89,7 @@ class Matrix(manim.Scene):
 
         # Add input matrix and label with fade in
         self.play(manim.FadeIn(Xi), manim.FadeIn(xi_label))
-        title1 = manim.Text("Intermediate representation for some time step i\n Examples are laid out as independent rows",color=manim.GREEN,font_size=18,font="Simple Nerd Font")
+        title1 = manim.Text("Intermediate representation at some time step i\n Examples are laid out as independent rows",color=manim.GREEN,font_size=18,font="Simple Nerd Font")
         title1.to_edge(manim.DOWN)
         self.add(title1)
         self.wait(2)

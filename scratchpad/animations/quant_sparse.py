@@ -60,6 +60,15 @@ class toSparse(manim.MovingCameraScene):
 
         title2 = manim.MarkupText(
         f"""
+        Bit Depth: <span fgcolor="{manim.YELLOW}">Normal</span>
+        Exp Depth: <span fgcolor="{manim.RED}">HIGH</span>
+        Improves:  <span fgcolor="{manim.YELLOW}">Normal</span>
+        TradeOff:  <span fgcolor="{manim.YELLOW}">Coverage Collapse</span>
+        """, color=manim.WHITE,font_size=15,font="Simple Nerd Font",
+        ).next_to(ax,manim.RIGHT).shift(manim.RIGHT)
+
+        title3 = manim.MarkupText(
+        f"""
         Bit Depth: <span fgcolor="{manim.RED}">High</span>
         Exp Depth: <span fgcolor="{manim.YELLOW}">Normal</span>
         Improves:  <span fgcolor="{manim.GREEN}">More Coverage</span>
@@ -67,7 +76,7 @@ class toSparse(manim.MovingCameraScene):
         """, color=manim.WHITE,font_size=15,font="Simple Nerd Font",
         ).next_to(ax,manim.RIGHT).shift(manim.RIGHT)
 
-        title3 = manim.MarkupText(
+        title4 = manim.MarkupText(
         f"""
         Bit Depth: <span fgcolor="{manim.RED}">HIGH</span>
         Exp Depth: <span fgcolor="{manim.RED}">HIGH</span>
@@ -76,7 +85,7 @@ class toSparse(manim.MovingCameraScene):
         """, color=manim.WHITE,font_size=15,font="Simple Nerd Font",
         ).next_to(ax,manim.RIGHT).shift(manim.RIGHT)
 
-        title4 = manim.MarkupText(
+        title5 = manim.MarkupText(
         f"""
         Bit Depth: <span fgcolor="{manim.RED}">HIGH</span>
         Exp Depth: <span fgcolor="{manim.GREEN}">LOW</span>
@@ -85,7 +94,7 @@ class toSparse(manim.MovingCameraScene):
         """, color=manim.WHITE,font_size=15,font="Simple Nerd Font",
         ).next_to(ax,manim.RIGHT).shift(manim.RIGHT)
 
-        title5 = manim.MarkupText(
+        title6 = manim.MarkupText(
         f"""
         Bit Depth: <span fgcolor="{manim.GREEN}">LOW</span>
         Exp Depth: <span fgcolor="{manim.GREEN}">LOW</span>
@@ -94,7 +103,7 @@ class toSparse(manim.MovingCameraScene):
         """, color=manim.WHITE,font_size=15,font="Simple Nerd Font",
         ).next_to(ax,manim.RIGHT).shift(manim.RIGHT)
 
-        title6 = manim.MarkupText(
+        title7 = manim.MarkupText(
         f"""
         Bit Depth: <span fgcolor="{manim.YELLOW}">0</span>
         Exp Depth: <span fgcolor="{manim.YELLOW}">Any</span>
@@ -118,19 +127,26 @@ class toSparse(manim.MovingCameraScene):
         b_display.add_updater(update_b)
         e_display.add_updater(update_e)
 
+        # Animate: improve e (more precision)
+        self.play(manim.Transform(title1,title2))
+        self.wait(1)
+        self.play(manim.Indicate(e_display))
+        self.play(e_tracker.animate.set_value(-8.0), run_time=3)
+        self.wait(2)
+        self.play(e_tracker.animate.set_value(-3.5), run_time=3)
 
         # Animate: increase b (more precision)
-        self.play(manim.Transform(title1,title2))
+        self.play(manim.Transform(title1,title3))
         self.wait(1)
         self.play(manim.Indicate(b_display))
         self.play(b_tracker.animate.set_value(6), run_time=3)
         self.wait(2)
 
         # Animate: improve e (more precision)
-        self.play(manim.Transform(title1,title3))
+        self.play(manim.Transform(title1,title4))
         self.wait(1)
         self.play(manim.Indicate(e_display))
-        self.play(e_tracker.animate.set_value(-8.0), run_time=3)
+        self.play(e_tracker.animate.set_value(-6.0), run_time=3)
         self.wait(2)
 
         self.play(self.camera.frame.animate.scale(0.1).move_to(manim.ORIGIN), run_time=1)
@@ -139,21 +155,21 @@ class toSparse(manim.MovingCameraScene):
         self.wait(2)
 
         # Animate: decrease e (bad precision)
-        self.play(manim.Transform(title1,title4))
+        self.play(manim.Transform(title1,title5))
         self.wait(1)
         self.play(manim.Indicate(e_display))
         self.play(e_tracker.animate.set_value(-1.0), run_time=3)
         self.wait(2)
 
         # Animate: decrease b (bad coverage)
-        self.play(manim.Transform(title1,title5))
+        self.play(manim.Transform(title1,title6))
         self.wait(1)
         self.play(manim.Indicate(b_display))
         self.play(b_tracker.animate.set_value(1), run_time=3)
         self.wait(2)
 
         # Animate: set b to 0 (makes output sparse)
-        self.play(manim.Transform(title1,title6))
+        self.play(manim.Transform(title1,title7))
         self.wait(1)
         self.play(manim.Indicate(b_display))
         self.play(b_tracker.animate.set_value(0), run_time=3)
