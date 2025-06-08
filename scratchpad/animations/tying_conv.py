@@ -53,7 +53,7 @@ class compressKernels(manim.Scene):
         title = manim.Text("(Ir)reversible Forgetting in Compressing Convolution kernels", **font_style)
         title.to_edge()
         self.play(manim.Write(title), runtime=0.3)
-        self.play(manim.ScaleInPlace(title, 0.5), runtime=0.1)
+        self.play(manim.ScaleInPlace(title, 0.3), runtime=0.1)
         self.play(title.animate.to_edge(manim.DR), runtime=0.1)
         
         img_path = "./wall.png"
@@ -206,14 +206,14 @@ class compressKernels(manim.Scene):
         self.wait(1)
 
         # output of convolution kernels
-        commentary3 = manim.Text("Output from Quantized Kernel",**font_style).to_edge(manim.UP).scale(0.6)
+        commentary3 = manim.Text("Output from Quantized Conv Kernel",**font_style).to_edge(manim.UP).scale(0.6)
         self.play(manim.Transform(commentary1,commentary3))
         self.play(manim.FadeIn(from_kernels_g))
         self.play(from_kernels_g.animate.shift(manim.DOWN * 2))
         self.wait(2)
         
         # improve quant for relevant filters
-        commentary4 = manim.Text("Add More Bit Depth to relevant kernels",**font_style).to_edge(manim.UP).scale(0.6)
+        commentary4 = manim.Text("During training more Bit Depth might be added to kernels which produced stronger response",**font_style).to_edge(manim.UP).scale(0.6)
         self.play(manim.Transform(commentary1,commentary4))
         self.play(manim.Indicate(horizontal_title,color=manim.GREEN), manim.Indicate(diagonal_title,color=manim.BLUE))
         self.wait(0.5)
@@ -221,20 +221,20 @@ class compressKernels(manim.Scene):
         self.wait(2)
 
         # forget the kernel
-        commentary5 = manim.Text("Reduce Bit Depth for less relevant kernels 'Forgetting'",**font_style).to_edge(manim.UP).scale(0.6)
+        commentary5 = manim.Text("And might reduce Bit Depth for other Conv kernels 'Forgetting'",**font_style).to_edge(manim.UP).scale(0.6)
         self.play(manim.Transform(commentary1,commentary5))
         self.play(manim.Indicate(faint_title))
         self.play(manim.Transform(faint_title,faint_title_update))
         self.wait(1)
 
-        commentary6 = manim.Text("If the bit depth goes 0 . we will prune an entire kernel",**font_style).to_edge(manim.UP).scale(0.6)
+        commentary6 = manim.Text("If the bit depth goes to 0; it will prune an entire kernel",**font_style).to_edge(manim.UP).scale(0.6)
         self.play(manim.Transform(commentary1,commentary6))
         self.play(manim.Indicate(kernel1,color=manim.GRAY_BROWN), manim.Indicate(from_kernel1,color=manim.GRAY_BROWN))
         self.play(manim.FadeOut(kernel1), manim.FadeOut(from_kernel1))
         self.wait(1)
 
 
-        commentary7 = manim.Text("A new batch which might need the vertical filter",**font_style).to_edge(manim.UP).scale(0.6)
+        commentary7 = manim.Text("A new batch which might need all the filters",**font_style).to_edge(manim.UP).scale(0.6)
         self.play(manim.Transform(commentary1,commentary7))
         img2.move_to(img.get_center())
         self.play(manim.Indicate(img))
