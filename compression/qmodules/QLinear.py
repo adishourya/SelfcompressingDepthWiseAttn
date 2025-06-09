@@ -25,8 +25,8 @@ class QlinearMLP(torch.nn.Module):
         self.exp_bit = torch.nn.Parameter(self.exp_bit)
 
     def size_layer(self):
-        # we will just return number of columns
-        return torch.tensor(self.m)
+        # sum of depth bits in rows.
+        return torch.sum(torch.relu(self.depth_bit))
 
     def _quantized_weight(self):
         b = torch.relu(self.depth_bit)

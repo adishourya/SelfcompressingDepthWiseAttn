@@ -1,3 +1,15 @@
+# keep comet ml import above torch [comet's documentation]
+import os
+os.getenv("comet_api")
+
+import datetime
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+os.makedirs("assets", exist_ok=True)
+
+from comet_ml import start
+from comet_ml.integration.pytorch import log_model,watch
+
+
 import torch
 from qmodules.QConv import Qconv
 from qmodules.QLinear import QlinearMLP
@@ -7,19 +19,24 @@ class QTrainer:
     """
     Quantized Trainer class
     """
-
     def __init__(self,
                  model,
                  train_loader,
                  eval_loader,
+                 pbar_track_freq,
+                 eval_track_freq,
                  dtype=torch.float32,
                  logging=False,
+                 comet_username="adishourya",
                  tag="low_bval",
                  project_name="convolution_compressing"):
 
         self.model = model()
         self.train_loader =train_loader
         self.eval_loader = eval_loader
+        self.pbar_track_freq = pbar_track_freq
+        self.eval_track_freq = eval_track_freq
+
 
         assert isinstance(dtype,torch.dtype),"Hein? unrecognized dtype"
         self.dtype = dtype
@@ -27,6 +44,7 @@ class QTrainer:
 
         if self.logging:
             # print("logging costs around 0.5 secs more per iteration.")
+            self.comet_username = comet_username
             self.tag = tag
             self.project_name = project_name
             self._setup_logging()
@@ -47,6 +65,7 @@ class QTrainer:
         self.model.to("cuda")
         self.track_decay = []
         self.track_activekernels = []
+        self.track_activedualbasis = []
         self.track_loss = []
 
     
@@ -67,21 +86,15 @@ class QTrainer:
     
         # print(self._qlayersize())
         print("Total Kernels:",self._activekernelscount())
+        print("Total Duals:",self._activeLinearDualbasis())
 
     def _setup_logging(self):
-        import os
-        os.getenv("comet_api")
-        
-        from comet_ml import start
-        from comet_ml.integration.pytorch import log_model,watch
-        
         self.experiment = start(
           api_key=os.getenv("comet_api"),
           project_name=self.project_name,
-          workspace="adishourya"
+          workspace=self.comet_username
         )
         self.experiment.add_tag(self.tag)
-        
         # watch weights [to be precise i want to watch sparsity.. but we will see that later]
         # this is costly
         watch(self.model)
@@ -100,25 +113,70 @@ class QTrainer:
         for name,layer in self.model.named_modules():
             if isinstance(layer,Qconv):
                 depths = torch.relu(layer.depth_bit)
+                # count nnz depth bits
                 count =torch.sum(torch.where(depths>0,1,0)).item()
                 kernel_counts[name] = count
         return kernel_counts
 
+    def _activeLinearDualbasis(self):
+        row_counts = dict()
+        for name,layer in self.model.named_modules():
+            if isinstance(layer,QlinearMLP):
+                depths = torch.relu(layer.depth_bit)
+                # count nnz depth bits
+                count = torch.sum(torch.where(depths>0,1,0)).item()
+                row_counts[name] = count
+        return row_counts
 
-    def _track(self,loss,activekernels,bit_decay,epoch):
+    def _save_checkpoint(self):
+        print("Saving")
+        torch.save({
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optim.state_dict(),
+        }, f"assets/{self.tag}_final_ckpt.pth_{timestamp}")
+
+
+    def _track(self,loss,activekernels,activeduals,bit_decay,epoch):
+        """
+        append loss and active kernel stats.
+        optionally loggs them to comet_ml
+        """
         self.track_loss.append(loss)
         self.track_activekernels.append(activekernels.values())
+        self.track_activedualbasis.append(activeduals.values())
         self.track_decay.append(bit_decay)
         if self.logging:
              self.experiment.log_metric(name="loss", value=loss, step=epoch)
              self.experiment.log_metric(name="decay", value=bit_decay, step=epoch)
              self.experiment.log_metric(name="activekernels", value=sum(activekernels.values()), step=epoch)
+             self.experiment.log_metric(name="activeDualBasis", value=sum(activeduals.values()), step=epoch)
+
+    @torch.no_grad
+    def eval_run(self):
+        # double sure !!
+        self.model.eval()
+        total_loss = 0
+        total_correct = 0
+        total_samples = 0
+        for batch_img, batch_label in self.eval_loader:
+            batch_img = batch_img.to("cuda").to(self.dtype)
+            batch_label = batch_label.to("cuda")
+            out = self.model(batch_img)
+            loss = torch.nn.functional.cross_entropy(input=out,target=batch_label)
+            total_loss += loss.item()
+
+            prediction = torch.argmax(out,dim=1)
+            total_correct += (prediction==batch_label).sum().item()
+            total_samples += batch_label.size(0)
         
+        avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
+        return avg_loss, avg_accuracy
 
     # @torch.compile # this will not work if you want to track modules states in dict and such.. dynamo error. compile model instead.
     def train(self,num_epochs=10):
         pbar_epoch = tqdm(range(num_epochs))
         for epoch in pbar_epoch:
+            batch_count = 0
             for batch_img, batch_label in self.train_loader:
                 batch_img = batch_img.to("cuda").to(self.dtype)
                 batch_label = batch_label.to("cuda")
@@ -132,16 +190,36 @@ class QTrainer:
                 self.optim.zero_grad()
                 loss.backward()
                 self.optim.step()
-                if epoch %50 == 0:
+
+                # progress bar update [batch count] 
+                batch_count +=1
+                if batch_count % self.pbar_track_freq == 0:
                     activekernels = self._activekernelscount()
+                    activeduals = self._activeLinearDualbasis()
                     pbar_epoch.set_postfix(
                         loss=loss.item(),
                         activekernels = activekernels.values(),
+                        activeduals = activeduals.values(),
                         decay=self.gamma*bit_decay.item(),
                     )
-                    self._track(loss.item(),activekernels,self.gamma*bit_decay.item(),epoch)
-                        
+                    self._track(loss=loss.item(),
+                                activekernels=activekernels,
+                                activeduals = activeduals,
+                                bit_decay=self.gamma*bit_decay.item(),
+                                epoch=epoch)
+
+            # eval tracking
+            if epoch % self.eval_track_freq == 0:
+                self.model.eval()
+                avg_loss , avg_accuracy = self.eval_run()
+                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=}")
+                self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
+                self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
+        # finishing up
         if self.logging:
+            # this also saves the model weights
             log_model(self.experiment,model=self.model,model_name=self.tag)
+        self._save_checkpoint()
+
         return self.model
     
