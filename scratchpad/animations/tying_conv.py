@@ -57,7 +57,7 @@ class compressKernels(manim.Scene):
         self.play(title.animate.to_edge(manim.DR), runtime=0.1)
         
         img_path = "./wall.png"
-        img_path2 = "./mountains.png"
+        img_path2 = "./feesh.png"
         img = manim.ImageMobject(img_path).scale(0.2)
         img2 = manim.ImageMobject(img_path2).scale(0.1)
 
@@ -120,14 +120,14 @@ class compressKernels(manim.Scene):
         kernel3_img = kernel_to_image(diagonal_45_kernel)
 
         # Outputs (colorized)
-        from_kernel1 = kernel_to_image(conv1, colormap='magma')
-        from_kernel2 = kernel_to_image(conv2, colormap='magma')
-        from_kernel3 = kernel_to_image(conv3, colormap='magma')
+        from_kernel1 = kernel_to_image(conv1, colormap='Oranges')
+        from_kernel2 = kernel_to_image(conv2, colormap='Greens')
+        from_kernel3 = kernel_to_image(conv3, colormap='Blues')
 
 
-        from_kernel1_2 = kernel_to_image(conv1_2, colormap='magma')
-        from_kernel2_2 = kernel_to_image(conv2_2, colormap='magma')
-        from_kernel3_2 = kernel_to_image(conv3_2, colormap='magma')
+        from_kernel1_2 = kernel_to_image(conv1_2, colormap='Oranges')
+        from_kernel2_2 = kernel_to_image(conv2_2, colormap='Greens')
+        from_kernel3_2 = kernel_to_image(conv3_2, colormap='Blues')
 
         kernel1 = manim.ImageMobject(kernel1_img)
         kernel2 = manim.ImageMobject(kernel2_img)
@@ -180,7 +180,7 @@ class compressKernels(manim.Scene):
 
         horizontal_title = manim.Text("b=3.5,e=-3.5",**font_style,color=manim.GREEN)
         horizontal_title.next_to(kernel2,manim.DOWN)
-        horizontal_tile_update = manim.Text("b=3.8,e=-3.8",**font_style,color=manim.GREEN)
+        horizontal_tile_update = manim.Text("b=5.2,e=-6.1",**font_style,color=manim.GREEN)
         horizontal_tile_update.move_to(horizontal_title.get_center())
 
         diagonal_title = manim.Text("b=3.5,e=-3.5",**font_style,color=manim.BLUE)
