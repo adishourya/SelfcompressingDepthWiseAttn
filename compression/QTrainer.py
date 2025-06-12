@@ -40,6 +40,7 @@ class QTrainer:
 
         assert isinstance(dtype,torch.dtype),"Hein? unrecognized dtype"
         self.dtype = dtype
+        self.eps = torch.finfo(self.dtype).eps
         self.logging = logging
 
         if self.logging:
@@ -93,9 +94,13 @@ class QTrainer:
 
     def estimate_bit_depth(self,x: torch.Tensor):
         x = torch.abs(x)
-        int_bits = torch.ceil(torch.log2(torch.clip(x.max(), min=1e-8) + 1))
-        frac_bits = torch.ceil(-torch.log2(torch.clip((x - x.round()).mean(), min=1e-8)))
-        return int_bits + frac_bits
+        int_bits = torch.ceil(torch.log2(torch.clip(x, min=self.eps)))
+        # frac bits might be overestimate... if the x is too close to x.round
+        # so this is a bit hacky ... i am only tracking median
+        residual = (x - x.round()).abs()
+        residual = torch.median(residual[residual > self.eps])
+        frac_bits = torch.ceil(-torch.log2(torch.clip(residual, min=self.eps)))
+        return (int_bits + frac_bits + 1).sum()
 
 
     def model_bit_depth_summary(self):
@@ -104,8 +109,7 @@ class QTrainer:
         """
         total_bits = 0
         for _, param in self.model.named_parameters():
-            bit_depth = self.estimate_bit_depth(param)
-            total_bits += param.numel() * bit_depth
+            total_bits += self.estimate_bit_depth(param)
         return total_bits
 
     def _setup_logging(self):

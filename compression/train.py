@@ -22,4 +22,4 @@ if __name__ == "__main__":
                         train_loader=train_loader,
                         eval_loader=eval_loader,
                         **config)
-    qtrainer.train(100)
+    qtrainer.train(200)
