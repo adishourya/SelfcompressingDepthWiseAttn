@@ -79,14 +79,34 @@ class QTrainer:
 
         self.tot_init = sum(p.numel() for group in self.optim.param_groups for p in group['params'] if p.requires_grad)
         self.tot_qparams = torch.sum(torch.tensor([p_weight.numel() for p,p_weight in self.model.named_parameters() if "_bit" in p]))
+        self.bits_init = self.model_bit_depth_summary() 
     
         print(f"Total Parameters {self.tot_init=}")
         print(f"of which compression are :{self.tot_qparams=}")
         print(f"compression factor at init {self.gamma * self._qlayersize()}")
-    
-        # print(self._qlayersize())
-        print("Total Kernels:",self._activekernelscount())
-        print("Total Duals:",self._activeLinearDualbasis())
+        print(f"Model Size in Bits {self.bits_init=}")
+
+        if self.logging:
+            self.experiment.log_metric(name="Init Parameters", value=self.tot_init)
+            self.experiment.log_metric(name="Total Qparams ", value=self.tot_qparams)
+
+
+    def estimate_bit_depth(self,x: torch.Tensor):
+        x = torch.abs(x)
+        int_bits = torch.ceil(torch.log2(torch.clip(x.max(), min=1e-8) + 1))
+        frac_bits = torch.ceil(-torch.log2(torch.clip((x - x.round()).mean(), min=1e-8)))
+        return int_bits + frac_bits
+
+
+    def model_bit_depth_summary(self):
+        """
+        Per weight not individual tensor
+        """
+        total_bits = 0
+        for _, param in self.model.named_parameters():
+            bit_depth = self.estimate_bit_depth(param)
+            total_bits += param.numel() * bit_depth
+        return total_bits
 
     def _setup_logging(self):
         self.experiment = start(
@@ -130,10 +150,13 @@ class QTrainer:
 
     def _save_checkpoint(self):
         print("Saving")
-        torch.save({
-            'model_state_dict': self.model.state_dict(),
-            'optimizer_state_dict': self.optim.state_dict(),
-        }, f"assets/{self.tag}_final_ckpt.pth_{timestamp}")
+        model_checkpoint = {
+                ""
+                'model_state_dict': self.model.state_dict(),
+                'optimizer_state_dict': self.optim.state_dict(),
+                'loss':self.track_loss[-1]
+                }
+        return model_checkpoint
 
 
     def _track(self,loss,activekernels,activeduals,bit_decay,epoch):
@@ -162,15 +185,15 @@ class QTrainer:
             batch_img = batch_img.to("cuda").to(self.dtype)
             batch_label = batch_label.to("cuda")
             out = self.model(batch_img)
-            loss = torch.nn.functional.cross_entropy(input=out,target=batch_label)
-            total_loss += loss.item()
-
+            bit_decay = self._qlayersize()
+            total_loss += torch.nn.functional.cross_entropy(input=out,target=batch_label) + self.gamma * bit_decay
             prediction = torch.argmax(out,dim=1)
             total_correct += (prediction==batch_label).sum().item()
             total_samples += batch_label.size(0)
-        
+
+        total_bits = self.model_bit_depth_summary()
         avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
-        return avg_loss, avg_accuracy
+        return avg_loss, avg_accuracy, total_bits
 
     # @torch.compile # this will not work if you want to track modules states in dict and such.. dynamo error. compile model instead.
     def train(self,num_epochs=10):
@@ -211,15 +234,19 @@ class QTrainer:
             # eval tracking
             if epoch % self.eval_track_freq == 0:
                 self.model.eval()
-                avg_loss , avg_accuracy = self.eval_run()
-                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=}")
-                self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
-                self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
+                avg_loss , avg_accuracy,total_bits = self.eval_run()
+                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {total_bits=}")
+                if self.logging:
+                    self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
+                    self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
+                    self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
+                    self.experiment.log_metric(name="Total Bits", value=total_bits, step=epoch)
         # finishing up
+        checkpoint = self._save_checkpoint()
         if self.logging:
             # this also saves the model weights
-            log_model(self.experiment,model=self.model,model_name=self.tag)
-        self._save_checkpoint()
+            log_model(self.experiment,checkpoint,model_name=self.tag)
+        torch.save(checkpoint,f"assets/{self.tag}_ckpt.pth_{timestamp}")
 
         return self.model
     
