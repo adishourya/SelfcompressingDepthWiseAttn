@@ -9,7 +9,7 @@ class QlinearMLP(torch.nn.Module):
     i.e we will try to prune column weights
     """
 
-    def __init__(self,m:int,n:int,b=2,e=-8):
+    def __init__(self,m:int,n:int,b=2.0,e=-8.0):
         self.m , self.n = m,n
         super().__init__()
         b = torch.as_tensor(b)

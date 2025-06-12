@@ -8,6 +8,8 @@ from qmodules.Models.ConvModel import QconvModel
 from QTrainer import QTrainer
 
 config = dict(
+    dtype = torch.float32,
+    amp_dtype = torch.float16,
     pbar_track_freq=50, # Every xth batch updates the progress bar
     eval_track_freq= 5, # Every xth epoch does an Eval Run 
     logging=True, # comet ml tracking 

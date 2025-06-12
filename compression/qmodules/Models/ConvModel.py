@@ -16,6 +16,7 @@ class QconvModel(torch.nn.Module):
         self.bn2 = torch.nn.BatchNorm2d(32)
 
         self.L1 = QlinearMLP(32*7*7, 32)
+        # L2 will never be pruned...
         self.L2 = QlinearMLP(32, 10)
 
 

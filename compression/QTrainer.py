@@ -26,6 +26,7 @@ class QTrainer:
                  pbar_track_freq,
                  eval_track_freq,
                  dtype=torch.float32,
+                 amp_dtype =torch.float32,
                  logging=False,
                  comet_username="adishourya",
                  tag="low_bval",
@@ -39,7 +40,10 @@ class QTrainer:
 
 
         assert isinstance(dtype,torch.dtype),"Hein? unrecognized dtype"
+        assert isinstance(amp_dtype,torch.dtype),"Hein? unrecognized dtype"
         self.dtype = dtype
+        # we will keep this for H100...
+        self.amp_dtype = amp_dtype
         self.eps = torch.finfo(self.dtype).eps
         self.logging = logging
 
@@ -56,14 +60,15 @@ class QTrainer:
             # do we actually need high precision matmul ??
             torch.set_float32_matmul_precision("high")
 
-        print(f"Training with {self.dtype=} precision")
+        print(f"Training with {self.dtype=}")
 
-        # self.scaler = torch.amp.GradScaler()
+        self.scaler = torch.amp.GradScaler()
+        # no need to do to dtype
         self.model = self.model.to(self.dtype)
         self.model = torch.compile(self.model)
-
         # dont try it on cpu!
         self.model.to("cuda")
+
         self.track_decay = []
         self.track_activekernels = []
         self.track_activedualbasis = []
@@ -205,18 +210,25 @@ class QTrainer:
         for epoch in pbar_epoch:
             batch_count = 0
             for batch_img, batch_label in self.train_loader:
+                # get new batch [this gets compiled away... this is ok!..]
                 batch_img = batch_img.to("cuda").to(self.dtype)
                 batch_label = batch_label.to("cuda")
 
                 # bfloat16 with cross entropy needs autocasting 
-                with torch.autocast(device_type="cuda",dtype=self.dtype):
+                # with torch.cuda.amp.autocast(): <- this got deprecated
+                with torch.autocast(device_type="cuda",dtype=self.amp_dtype):
                     out = self.model(batch_img)
                     bit_decay = self._qlayersize()
                     loss = torch.nn.functional.cross_entropy(input=out,target=batch_label) + self.gamma * bit_decay
 
+                # loss.backward()
+                self.scaler.scale(loss).backward()
+                # self.optim.step()
+                self.scaler.step(self.optim)
+                # flush previous grad
                 self.optim.zero_grad()
-                loss.backward()
-                self.optim.step()
+                # remember to update the scaler for next iter
+                self.scaler.update()
 
                 # progress bar update [batch count] 
                 batch_count +=1
