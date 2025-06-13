@@ -1,3 +1,7 @@
+from pathlib import Path
+script_dir = Path(__file__).resolve().parent
+data_dir = script_dir / "datasets"  # Keep datasets in a "datasets" folder next to this file
+
 import matplotlib.pyplot as plt
 import einops
 import torch
@@ -11,15 +15,21 @@ transform = transforms.Compose([
     transforms.Normalize((0.1307,), (0.3081,))
 ])
 
-mnist = datasets.MNIST(root='./data', train=True, download=True,transform=transform)
-train_size = int(0.75 * len(mnist))
-eval_size = int(0.1 * len(mnist))
-test_size = int(0.15 * len(mnist))
-train_dataset, eval_dataset,test_dataset = random_split(mnist, [train_size,eval_size, test_size])
+def get_dataloader(train_split:float = 0.75,
+                   eval_split:float = 0.1,
+                   test_split:float =0.15,
+                   batch_size=256):
 
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=2)
-eval_loader = DataLoader(eval_dataset, batch_size=64, shuffle=True, num_workers=2)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False, num_workers=2)
+    assert train_split + eval_split + test_split == 1 , "split does not sum to 1"
+    mnist = datasets.MNIST(root=data_dir, train=True, download=True,transform=transform)
+    train_size = int(train_split * len(mnist))
+    eval_size = int(eval_split * len(mnist))
+    test_size = int(test_split * len(mnist))
+    train_dataset, eval_dataset,test_dataset = random_split(mnist, [train_size,eval_size, test_size])
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+    eval_loader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
+    return train_loader , eval_loader , test_loader
 
 
 def show_data_examples(loader,count=5):
@@ -34,7 +44,8 @@ def show_data_examples(loader,count=5):
 
 
 if __name__ == "__main__":
-    print(len(train_loader), train_size) # total training batches
-    print(len(eval_loader), eval_size) # total eval batches
-    print(len(test_loader), test_size) # total test batches
+    train_loader , eval_loader , test_loader = get_dataloader()
+    print(len(train_loader)) # total training batches
+    print(len(eval_loader)) # total eval batches
+    print(len(test_loader)) # total test batches
     show_data_examples(eval_loader,5)

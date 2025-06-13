@@ -23,10 +23,11 @@ class QTrainer:
                  model,
                  train_loader,
                  eval_loader,
-                 pbar_track_freq,
-                 eval_track_freq,
                  dtype=torch.float32,
                  amp_dtype =torch.float32,
+                 compression_gamma = 0.1,
+                 pbar_track_freq = 50,
+                 eval_track_freq = 5,
                  logging=False,
                  comet_username="adishourya",
                  tag="low_bval",
@@ -79,34 +80,62 @@ class QTrainer:
             self.model.parameters(),
             weight_decay=1e-3)
     
-        self.gamma = (1/10) # should be around 0.05 or something.. compression factor
+        self.gamma = compression_gamma # should be around 0.05 or something.. compression factor
         # we need to calculate total number of parameters at initialization (papar calls it N)
         # here since everything is trainable
 
         self.tot_init = sum(p.numel() for group in self.optim.param_groups for p in group['params'] if p.requires_grad)
+        self.qtot_init = self._qlayersize() 
         self.tot_qparams = torch.sum(torch.tensor([p_weight.numel() for p,p_weight in self.model.named_parameters() if "_bit" in p]))
-        self.bits_init = self.model_bit_depth_summary() 
+        self.bits_summary = self.model_bit_depth_summary() 
     
         print(f"Total Parameters {self.tot_init=}")
+        print(f"Layer Size at Init: {self.qtot_init}")
         print(f"of which compression are :{self.tot_qparams=}")
         print(f"compression factor at init {self.gamma * self._qlayersize()}")
-        print(f"Model Size in Bits {self.bits_init=}")
+        print(f"Model ULP: {self.bits_summary=}")
 
         if self.logging:
             self.experiment.log_metric(name="Init Parameters", value=self.tot_init)
             self.experiment.log_metric(name="Total Qparams ", value=self.tot_qparams)
+            self.experiment.log_metric(name="Total Layersize ", value=self.qtot_init)
 
 
-    def estimate_bit_depth(self,x: torch.Tensor):
+    def ulp(self,x: torch.Tensor):
+        """
+        Units in Last place measurement.
+        From : https://en.wikipedia.org/wiki/Unit_in_the_last_place
+        is the distance between the two closest straddling floating-point
+        >>> x = 1.0
+        >>> p = 0
+        >>> while x != x + 1:
+        ...   x = x * 2
+        ...   p = p + 1
+        ... 
+        >>> x
+        9007199254740992.0
+        >>> p
+        53
+        >>> x + 2 + 1
+        9007199254740996.0
+
+        """
         x = torch.abs(x)
-        int_bits = torch.ceil(torch.log2(torch.clip(x, min=self.eps)))
-        # frac bits might be overestimate... if the x is too close to x.round
-        # so this is a bit hacky ... i am only tracking median
-        residual = (x - x.round()).abs()
-        residual = torch.median(residual[residual > self.eps])
-        frac_bits = torch.ceil(-torch.log2(torch.clip(residual, min=self.eps)))
-        return (int_bits + frac_bits + 1).sum()
 
+        # Integer part bit depth... this is easy
+        int_bits = torch.ceil(torch.log2(torch.clip(x, min=1.0)))
+        int_bits = torch.clip(int_bits,min=0)
+        # ULP scale (relative rounding resolution)
+        ulp_scale = torch.clip(x * self.eps, min=self.eps)
+
+        # Fractional error: how far off is x from nearest value (simulate quant error)
+        residual = torch.abs(x - x.round())
+        residual = torch.clip(residual, min=self.eps)
+        ratio = torch.clip(residual/ulp_scale,max=1.0,min=self.eps)
+        frac_bits = torch.ceil(-torch.log2(ratio))
+
+        total_bits = (int_bits + frac_bits + 1).sum()
+        return total_bits
 
     def model_bit_depth_summary(self):
         """
@@ -114,7 +143,7 @@ class QTrainer:
         """
         total_bits = 0
         for _, param in self.model.named_parameters():
-            total_bits += self.estimate_bit_depth(param)
+            total_bits += self.ulp(param)
         return total_bits
 
     def _setup_logging(self):
@@ -134,7 +163,7 @@ class QTrainer:
         size_lin =  torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
         # [print("->",layer,layer.size_layer()) for layer in self.model.modules() if isinstance(layer,QlinearMLP)]
         # print(size_lin,size_conv)
-        return (size_conv + size_lin)/self.tot_init
+        return (size_conv + size_lin)
 
 
     def _activekernelscount(self):
@@ -194,15 +223,15 @@ class QTrainer:
             batch_img = batch_img.to("cuda").to(self.dtype)
             batch_label = batch_label.to("cuda")
             out = self.model(batch_img)
-            bit_decay = self._qlayersize()
+            bit_decay = self._qlayersize()/self.qtot_init
             total_loss += torch.nn.functional.cross_entropy(input=out,target=batch_label) + self.gamma * bit_decay
             prediction = torch.argmax(out,dim=1)
             total_correct += (prediction==batch_label).sum().item()
             total_samples += batch_label.size(0)
 
-        total_bits = self.model_bit_depth_summary()
+        bit_summary = self.model_bit_depth_summary()
         avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
-        return avg_loss, avg_accuracy, total_bits
+        return avg_loss, avg_accuracy, bit_summary
 
     # @torch.compile # this will not work if you want to track modules states in dict and such.. dynamo error. compile model instead.
     def train(self,num_epochs=10):
@@ -218,7 +247,7 @@ class QTrainer:
                 # with torch.cuda.amp.autocast(): <- this got deprecated
                 with torch.autocast(device_type="cuda",dtype=self.amp_dtype):
                     out = self.model(batch_img)
-                    bit_decay = self._qlayersize()
+                    bit_decay = self._qlayersize() / self.qtot_init
                     loss = torch.nn.functional.cross_entropy(input=out,target=batch_label) + self.gamma * bit_decay
 
                 # loss.backward()
@@ -239,24 +268,24 @@ class QTrainer:
                         loss=loss.item(),
                         activekernels = activekernels.values(),
                         activeduals = activeduals.values(),
-                        decay=self.gamma*bit_decay.item(),
+                        decay=bit_decay.item(),
                     )
                     self._track(loss=loss.item(),
                                 activekernels=activekernels,
                                 activeduals = activeduals,
-                                bit_decay=self.gamma*bit_decay.item(),
+                                bit_decay=bit_decay.item(),
                                 epoch=epoch)
 
             # eval tracking
             if epoch % self.eval_track_freq == 0:
                 self.model.eval()
-                avg_loss , avg_accuracy,total_bits = self.eval_run()
-                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {total_bits=}")
+                avg_loss , avg_accuracy, bit_summary = self.eval_run()
+                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {bit_summary=}")
                 if self.logging:
                     self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
-                    self.experiment.log_metric(name="Total Bits", value=total_bits, step=epoch)
+                    self.experiment.log_metric(name="Model ULP", value=bit_summary, step=epoch)
         # finishing up
         checkpoint = self._save_checkpoint()
         if self.logging:
