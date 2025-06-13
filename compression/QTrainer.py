@@ -87,13 +87,13 @@ class QTrainer:
         self.tot_init = sum(p.numel() for group in self.optim.param_groups for p in group['params'] if p.requires_grad)
         self.qtot_init = self._qlayersize() 
         self.tot_qparams = torch.sum(torch.tensor([p_weight.numel() for p,p_weight in self.model.named_parameters() if "_bit" in p]))
-        self.bits_summary = self.model_bit_depth_summary() 
+        self.bit_summary = self.model_bit_depth_summary() 
     
         print(f"Total Parameters {self.tot_init=}")
         print(f"Layer Size at Init: {self.qtot_init}")
         print(f"of which compression are :{self.tot_qparams=}")
         print(f"compression factor at init {self.gamma * self._qlayersize()}")
-        print(f"Model ULP: {self.bits_summary=}")
+        print(f"Model Bits: {self.bit_summary=}")
 
         if self.logging:
             self.experiment.log_metric(name="Init Parameters", value=self.tot_init)
@@ -101,40 +101,22 @@ class QTrainer:
             self.experiment.log_metric(name="Total Layersize ", value=self.qtot_init)
 
 
-    def ulp(self,x: torch.Tensor):
-        """
-        Units in Last place measurement.
-        From : https://en.wikipedia.org/wiki/Unit_in_the_last_place
-        is the distance between the two closest straddling floating-point
-        >>> x = 1.0
-        >>> p = 0
-        >>> while x != x + 1:
-        ...   x = x * 2
-        ...   p = p + 1
-        ... 
-        >>> x
-        9007199254740992.0
-        >>> p
-        53
-        >>> x + 2 + 1
-        9007199254740996.0
-
-        """
+    def _calc_fakebits(self,x: torch.Tensor):
         x = torch.abs(x)
+        # Integer bits: how many bits to represent the integer part
+        int_bits = -1*torch.ceil(torch.log2(torch.clip(x, min=self.eps)))
 
-        # Integer part bit depth... this is easy
-        int_bits = torch.ceil(torch.log2(torch.clip(x, min=1.0)))
-        int_bits = torch.clip(int_bits,min=0)
-        # ULP scale (relative rounding resolution)
-        ulp_scale = torch.clip(x * self.eps, min=self.eps)
+        # Approximate fractional bits via distance from nearest integer in binary scale
+        residual = torch.abs(x - torch.round(x))
+        frac_bits = torch.ceil(-torch.log2(torch.clamp(residual, min=self.eps)))
 
-        # Fractional error: how far off is x from nearest value (simulate quant error)
-        residual = torch.abs(x - x.round())
-        residual = torch.clip(residual, min=self.eps)
-        ratio = torch.clip(residual/ulp_scale,max=1.0,min=self.eps)
-        frac_bits = torch.ceil(-torch.log2(ratio))
+        # Special case: exact integers → frac_bits = 0
+        frac_bits = torch.where(residual < self.eps, torch.tensor(0.0, device=x.device), frac_bits)
 
-        total_bits = (int_bits + frac_bits + 1).sum()
+        # Total: sign + int + frac
+        total_bits = (frac_bits + int_bits + 1).sum()
+        # print(f"{int_bits=}, {frac_bits=}, {residual=}")
+        print(f"{total_bits=}")
         return total_bits
 
     def model_bit_depth_summary(self):
@@ -143,7 +125,7 @@ class QTrainer:
         """
         total_bits = 0
         for _, param in self.model.named_parameters():
-            total_bits += self.ulp(param)
+            total_bits += self._calc_fakebits(param)
         return total_bits
 
     def _setup_logging(self):
@@ -161,8 +143,6 @@ class QTrainer:
     def _qlayersize(self):
         size_conv = torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,Qconv)]))
         size_lin =  torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
-        # [print("->",layer,layer.size_layer()) for layer in self.model.modules() if isinstance(layer,QlinearMLP)]
-        # print(size_lin,size_conv)
         return (size_conv + size_lin)
 
 
@@ -197,7 +177,9 @@ class QTrainer:
         return model_checkpoint
 
 
-    def _track(self,loss,activekernels,activeduals,bit_decay,epoch):
+    def _track(self, loss,
+               activekernels, activeduals,
+               bit_decay, epoch):
         """
         append loss and active kernel stats.
         optionally loggs them to comet_ml
@@ -285,7 +267,7 @@ class QTrainer:
                     self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
-                    self.experiment.log_metric(name="Model ULP", value=bit_summary, step=epoch)
+                    self.experiment.log_metric(name="Total Bits", value=bit_summary, step=epoch)
         # finishing up
         checkpoint = self._save_checkpoint()
         if self.logging:
