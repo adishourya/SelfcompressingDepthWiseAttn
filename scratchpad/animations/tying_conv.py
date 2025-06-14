@@ -215,15 +215,17 @@ class compressKernels(manim.Scene):
         # improve quant for relevant filters
         commentary4 = manim.Text("During training, additional bit depth may be allocated to kernels that generate stronger responses",**font_style).to_edge(manim.UP).scale(0.6)
         self.play(manim.Transform(commentary1,commentary4))
-        self.play(manim.Indicate(horizontal_title,color=manim.GREEN), manim.Indicate(diagonal_title,color=manim.BLUE))
-        self.wait(0.5)
-        self.play(manim.Transform(horizontal_title,horizontal_tile_update),manim.Transform(diagonal_title,diagonal_title_update))
+        self.play(manim.Flash(kernel2,color=manim.GREEN), manim.Indicate(horizontal_title,color=manim.GREEN))
+        self.play(manim.Transform(horizontal_title,horizontal_tile_update))
+        self.wait(1)
+        self.play(manim.Flash(kernel3,color=manim.BLUE), manim.Indicate(diagonal_title,color=manim.BLUE))
+        self.play(manim.Transform(diagonal_title,diagonal_title_update))
         self.wait(2)
 
         # forget the kernel
         commentary5 = manim.Text("And might reduce Bit Depth for other Conv kernels",**font_style).to_edge(manim.UP).scale(0.6)
         self.play(manim.Transform(commentary1,commentary5))
-        self.play(manim.Indicate(faint_title))
+        self.play(manim.Wiggle(faint_title))
         self.play(manim.Transform(faint_title,faint_title_update))
         self.wait(1)
 

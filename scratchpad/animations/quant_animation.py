@@ -23,6 +23,11 @@ class QuantizationAnimation(MovingCameraScene):
         b_bit = 3.5
         x_input = np.linspace(-2,2,100)
         y_init = x_input
+        equation = MathTex(
+        r"q(x) = 2^{e} round(clip(\frac{x}{2^{e}}, -2^{b-1}, 2^{b-1} -1))",
+        color=WHITE
+        )
+
         (y_result,y1,y2,y3),(cl_l,cl_r) = qbits(x_input,b_bit,e_bit)
         print("???",cl_l,cl_r)
 
@@ -119,7 +124,7 @@ class QuantizationAnimation(MovingCameraScene):
 
 
         # linspaced inputs
-        title = Text(f"Quantization Fnction\n{b_bit=}{e_bit=}",font_size=14,font="Simple Nerd Font")
+        title = Text(f"Quantization Function\n{b_bit=}, {e_bit=}",font_size=14,font="Simple Nerd Font", color = GRAY_A)
         title.to_corner(UR)
 
         author = Text("-Adi",font_size=5,font="Simple Nerd Font")
@@ -141,6 +146,9 @@ class QuantizationAnimation(MovingCameraScene):
         graph5_title = MathTex(r"\text{Scale Down}  2^e", font_size=20,  color=PURPLE).next_to(graph5,LEFT)
 
 
+        self.add(equation)
+        self.play(ScaleInPlace(equation,0.5))
+        self.play(equation.animate.to_corner(UL))
         self.add(plane1,ax1,ax_labels,title,author)
         self.wait(2)
         self.play(FadeIn(graph1),Write(graph1_title))
