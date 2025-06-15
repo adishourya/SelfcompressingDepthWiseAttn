@@ -28,6 +28,9 @@ class QlinearMLP(torch.nn.Module):
         # sum of depth bits in rows.
         return torch.sum(torch.relu(self.depth_bit)) * self.n
 
+    def _max_range(self):
+        return torch.max(torch.exp2(-1*self.exp_bit) * (torch.exp2(self.depth_bit)-1))
+
     def _quantized_weight(self):
         b = torch.relu(self.depth_bit)
         # print(self.linear.weight.shape , self.exp_bit.shape) # should be (m,n) * (1,n)

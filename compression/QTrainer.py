@@ -87,13 +87,13 @@ class QTrainer:
         self.tot_init = sum(p.numel() for group in self.optim.param_groups for p in group['params'] if p.requires_grad)
         self.qtot_init = self._qlayersize() 
         self.tot_qparams = torch.sum(torch.tensor([p_weight.numel() for p,p_weight in self.model.named_parameters() if "_bit" in p]))
-        self.bit_summary = self.model_bit_depth_summary() 
+        self.model_quant_range = self._layer_max_range() 
     
         print(f"Total Parameters {self.tot_init=}")
         print(f"Layer Size at Init: {self.qtot_init}")
         print(f"of which compression are :{self.tot_qparams=}")
         print(f"compression factor at init {self.gamma * self._qlayersize()}")
-        print(f"Model Bits: {self.bit_summary=}")
+        print(f"Model Bits: {self.model_quant_range=}")
 
         if self.logging:
             self.experiment.log_metric(name="Init Parameters", value=self.tot_init)
@@ -101,32 +101,6 @@ class QTrainer:
             self.experiment.log_metric(name="Total Layersize ", value=self.qtot_init)
 
 
-    def _calc_fakebits(self,x: torch.Tensor):
-        x = torch.abs(x)
-        # Integer bits: how many bits to represent the integer part
-        int_bits = -1*torch.ceil(torch.log2(torch.clip(x, min=self.eps)))
-
-        # Approximate fractional bits via distance from nearest integer in binary scale
-        residual = torch.abs(x - torch.round(x))
-        frac_bits = torch.ceil(-torch.log2(torch.clamp(residual, min=self.eps)))
-
-        # Special case: exact integers → frac_bits = 0
-        frac_bits = torch.where(residual < self.eps, torch.tensor(0.0, device=x.device), frac_bits)
-
-        # Total: sign + int + frac
-        total_bits = (frac_bits + int_bits + 1).sum()
-        # print(f"{int_bits=}, {frac_bits=}, {residual=}")
-        print(f"{total_bits=}")
-        return total_bits
-
-    def model_bit_depth_summary(self):
-        """
-        Per weight not individual tensor
-        """
-        total_bits = 0
-        for _, param in self.model.named_parameters():
-            total_bits += self._calc_fakebits(param)
-        return total_bits
 
     def _setup_logging(self):
         self.experiment = start(
@@ -143,6 +117,12 @@ class QTrainer:
     def _qlayersize(self):
         size_conv = torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,Qconv)]))
         size_lin =  torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
+        return (size_conv + size_lin)
+
+
+    def _layer_max_range(self):
+        size_conv = torch.max(torch.tensor([layer._max_range() for layer in self.model.modules() if isinstance(layer,Qconv)]))
+        size_lin =  torch.max(torch.tensor([layer._max_range() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
         return (size_conv + size_lin)
 
 
@@ -201,6 +181,10 @@ class QTrainer:
         total_loss = 0
         total_correct = 0
         total_samples = 0
+        start_time = torch.cuda.Event(enable_timing=True)
+        end_time = torch.cuda.Event(enable_timing=True)
+        torch.cuda.synchronize()
+        start_time.record()
         for batch_img, batch_label in self.eval_loader:
             batch_img = batch_img.to("cuda").to(self.dtype)
             batch_label = batch_label.to("cuda")
@@ -211,9 +195,13 @@ class QTrainer:
             total_correct += (prediction==batch_label).sum().item()
             total_samples += batch_label.size(0)
 
-        bit_summary = self.model_bit_depth_summary()
+        end_time.record()
+        torch.cuda.synchronize()
+        elapsed_time = start_time.elapsed_time(end_time)/1000.0
+
+        quant_range = self._layer_max_range()
         avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
-        return avg_loss, avg_accuracy, bit_summary
+        return avg_loss, avg_accuracy, quant_range, total_samples/elapsed_time
 
     # @torch.compile # this will not work if you want to track modules states in dict and such.. dynamo error. compile model instead.
     def train(self,num_epochs=10):
@@ -261,13 +249,14 @@ class QTrainer:
             # eval tracking
             if epoch % self.eval_track_freq == 0:
                 self.model.eval()
-                avg_loss , avg_accuracy, bit_summary = self.eval_run()
-                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {bit_summary=}")
+                avg_loss , avg_accuracy, model_quant_range, throughput = self.eval_run()
+                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {model_quant_range=} {throughput=}")
                 if self.logging:
                     self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
-                    self.experiment.log_metric(name="Total Bits", value=bit_summary, step=epoch)
+                    self.experiment.log_metric(name="Quant Max Range", value=model_quant_range, step=epoch)
+                    self.experiment.log_metric(name="Throughput", value=throughput, step=epoch)
         # finishing up
         checkpoint = self._save_checkpoint()
         if self.logging:
