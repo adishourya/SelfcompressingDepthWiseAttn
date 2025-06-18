@@ -1,6 +1,7 @@
 import torch
 import cutlass
 import cutlass.cute as cute
+import cutlass.torch as cltorch
 
 # Enable console logging (default: False)
 # export CUTE_DSL_LOG_TO_CONSOLE=1
@@ -59,3 +60,23 @@ say_hello()
 # precompiled hello
 compiled_hello = cute.compile(say_hello)
 compiled_hello()
+
+# making tensors and tensor layouts
+
+@cute.jit
+def create_tensor_ones(ptr: cute.Pointer):
+    our_layout = cute.make_layout(shape = (8,5),
+                                  stride = (5,1))
+    generated_tensor = cute.make_tensor(iterator=ptr,
+                                        layout= our_layout)
+    generated_tensor.fill(1)
+    cute.print_tensor(generated_tensor)
+    return generated_tensor
+
+a = torch.randn(8,5,dtype=cltorch.dtype(cutlass.Float32))
+ptr_a = cute.runtime.make_ptr(cutlass.Float32, a.data_ptr())
+print(ptr_a)
+print("Generating ones tensor")
+out = create_tensor_ones(ptr_a)
+cute.print_tensor(out)
+

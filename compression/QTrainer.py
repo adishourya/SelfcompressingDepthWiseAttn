@@ -121,8 +121,11 @@ class QTrainer:
 
 
     def _layer_max_range(self):
-        size_conv = torch.max(torch.tensor([layer._max_range() for layer in self.model.modules() if isinstance(layer,Qconv)]))
-        size_lin =  torch.max(torch.tensor([layer._max_range() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
+        """
+        Ideally we should report max of all the layers... but the sum would also be more sensitive to track.
+        """
+        size_conv = torch.sum(torch.tensor([layer._max_range() for layer in self.model.modules() if isinstance(layer,Qconv)]))
+        size_lin =  torch.sum(torch.tensor([layer._max_range() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
         return (size_conv + size_lin)
 
 
