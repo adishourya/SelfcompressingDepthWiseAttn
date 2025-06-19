@@ -146,12 +146,14 @@ class QuantizationAnimation(MovingCameraScene):
         graph5_title = MathTex(r"\text{Scale Down}  2^e", font_size=20,  color=PURPLE).next_to(graph5,LEFT)
 
 
-        self.add(equation)
+        # self.add(equation)
+        self.play(Write(equation))
         self.play(ScaleInPlace(equation,0.5))
         self.play(equation.animate.to_corner(UL))
-        self.add(plane1,ax1,ax_labels,title,author)
+
+        self.play(Write(plane1),Create(ax1),Write(ax_labels),Write(title),Write(author))
         self.wait(2)
-        self.play(FadeIn(graph1),Write(graph1_title))
+        self.play(Write(graph1),Write(graph1_title))
         self.wait(2)
         # scaled up with exp bits
         self.play(Transform(ax1,ax2),ScaleInPlace(plane1,np.exp2(e_bit)),Transform(graph1,graph2),Transform(graph1_title,graph2_title))
@@ -159,12 +161,15 @@ class QuantizationAnimation(MovingCameraScene):
         # clipped
 
 
+
         clip_line1 = ax2.plot(lambda x:cl_l,color=YELLOW)
         clip_line2 = ax2.plot(lambda x:cl_r,color=YELLOW)
-        self.play(Create(clip_line1),Create(clip_line2))
+        self.play(Transform(graph1_title,graph3_title))
+        self.play(Create(clip_line1),Create(clip_line2),runtime=0.5)
+        self.play(Uncreate(clip_line1),Uncreate(clip_line2), runtime=0.5)
 
-        self.play(Transform(graph1,graph3),Transform(graph1_title,graph3_title))
-        self.play(FadeOut(clip_line1),FadeOut(clip_line2))
+        self.play(Transform(graph1,graph3))
+
         self.wait(2)
         # quantize
         self.play(Transform(graph1_title,graph4_title))

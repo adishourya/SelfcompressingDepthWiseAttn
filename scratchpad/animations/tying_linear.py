@@ -89,7 +89,7 @@ class Matrix(manim.Scene):
         Xg = manim.VGroup(Xi, xi_label)
 
         # Add input matrix and label with fade in
-        self.play(manim.FadeIn(Xi), manim.FadeIn(xi_label))
+        self.play(manim.Write(Xi), manim.FadeIn(xi_label))
         title1 = manim.Text("Intermediate representation at some time step i\n Examples are laid out as independent rows",color=manim.GREEN,font_size=18,font="Simple Nerd Font")
         title1.to_edge(manim.DOWN)
         self.add(title1)
@@ -105,15 +105,16 @@ class Matrix(manim.Scene):
         self.wait(2)
 
         # Shift input matrix group left and scale down
-        self.play(Xg.animate.shift(manim.LEFT * 4))
-        self.play(manim.ScaleInPlace(Xg, 0.8))
+        self.play(Xg.animate.shift(manim.LEFT * 3))
+        self.play(manim.ScaleInPlace(Xg, 0.7))
 
         # Position wi_1g to the right of Xg and add
         wi_1g.next_to(Xg, manim.RIGHT)
-        self.add(wi_1g)
+        self.play(manim.FadeIn(wi_1g))
+        # self.add(wi_1g)
 
         # Shift wi_1g further right
-        self.play(wi_1g.animate.shift(manim.RIGHT * 0.5))
+        # self.play(wi_1g.animate.shift(manim.RIGHT * 0.5))
 
         title3 = manim.Text("Then the associated dual basis can be compressed\nHere the 4th row",color=manim.YELLOW,font_size=18,font="Simple Nerd Font")
         self.wait(1)
@@ -123,7 +124,7 @@ class Matrix(manim.Scene):
 
 
         # Indicate prunable weights
-        self.play(manim.Indicate(prw_g), manim.Indicate(p_grpup))
+        self.play(manim.Wiggle(prw_g), manim.Wiggle(p_grpup))
         self.wait(1)
 
         title4 = manim.Text("Broadcasting quant function along the rows",color=manim.BLUE,font_size=18,font="Simple Nerd Font")
