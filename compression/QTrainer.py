@@ -47,11 +47,11 @@ class QTrainer:
         self.amp_dtype = amp_dtype
         self.eps = torch.finfo(self.dtype).eps
         self.logging = logging
+        self.tag = tag
 
         if self.logging:
             # print("logging costs around 0.5 secs more per iteration.")
             self.comet_username = comet_username
-            self.tag = tag
             self.project_name = project_name
             self._setup_logging()
         
@@ -115,9 +115,14 @@ class QTrainer:
 
 
     def _qlayersize(self):
-        size_conv = torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,Qconv)]))
-        size_lin =  torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
-        return (size_conv + size_lin)
+        size = torch.sum(
+                torch.tensor([layer.size_layer() 
+                              for layer in self.model.modules() if isinstance(layer,self.model._targetModules())
+                              ])
+                )
+        # size_conv = torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,Qconv)]))
+        # size_lin =  torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
+        return size
 
 
     def _layer_max_range(self):
@@ -204,6 +209,7 @@ class QTrainer:
 
         quant_range = self._layer_max_range()
         avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
+        print(total_correct,avg_accuracy,total_samples)
         return avg_loss, avg_accuracy, quant_range, total_samples/elapsed_time
 
     # @torch.compile # this will not work if you want to track modules states in dict and such.. dynamo error. compile model instead.

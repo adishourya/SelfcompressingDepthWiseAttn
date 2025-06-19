@@ -14,10 +14,12 @@ train_loader,eval_loader,_ = get_dataloader(**data_config)
 
 
 from qmodules.Models.ConvModel import QconvModel
+from qmodules.Models.PureConvModel import QPureconvModel
 from QTrainer import QTrainer
 
 train_config = dict(
-    model = QconvModel, 
+    model = QPureconvModel, 
+    # model = QconvModel, 
     train_loader = train_loader,
     eval_loader = eval_loader,
     dtype = torch.float32,      # overflows if natively trained at fp16
@@ -27,11 +29,13 @@ train_config = dict(
     eval_track_freq= 5, # Every xth epoch does an Eval Run 
     logging=True, # comet ml tracking 
     comet_username="adishourya",
-    tag="low_bval",
+    tag="pure_conv",
     project_name="convolution_compressing"
 )
 
 
 if __name__ == "__main__":
     qtrainer = QTrainer(**train_config)
-    qtrainer.train(300)
+    # qtrainer.train(1)
+    # qtrainer.train(300)
+    qtrainer.train(1000)

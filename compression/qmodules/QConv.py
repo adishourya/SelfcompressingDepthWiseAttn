@@ -10,11 +10,12 @@ class Qconv(torch.nn.Module):
     we will try to not just compress  but take out entire filter kernels...
     these asserts them to be pytorch tensors
     """
-    def  __init__ (self,in_channels,out_channels,kernel_size=3,b=2.0,e=-8.0,):
+    def  __init__ (self,in_channels,out_channels,kernel_size=3,b=2.0,e=-8.0,padding=1):
         super().__init__()
         in_channels = torch.as_tensor(in_channels)
         out_channels = torch.as_tensor(out_channels)
         kernel_size = torch.as_tensor(kernel_size)
+        self.padding = padding
         b = torch.as_tensor(b)
         e= torch.as_tensor(e)
 
@@ -63,7 +64,7 @@ class Qconv(torch.nn.Module):
         W = self._quantized_weight()
         # assert self.weight.shape==W.shape
         # valid padding or should we do same.. paper does not say
-        return torch.nn.functional.conv2d(x,W,padding=1)
+        return torch.nn.functional.conv2d(x,W,padding=self.padding)
 
 if __name__ == '__main__':
     m = Qconv(3,8)

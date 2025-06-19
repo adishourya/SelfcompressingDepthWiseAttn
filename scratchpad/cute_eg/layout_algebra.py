@@ -95,48 +95,71 @@ def example_constructing_layouts():
 
 @cute.jit
 def example_coalescing_layouts():
-    layout_rm = cute.make_layout(shape= (4,(8,2)),
-                               stride=(1,(4,32))
+    # 1d tile in row mode
+    tile1d = cute.make_layout(shape= (4,(8,2)),
+                               stride=(1,(4,32)) # column major
+                               # stride= (16, (1,8)) # row major
                                )
     # flattened 3d layout
-    co_layout_rm = cute.coalesce(layout_rm)
+    co_tile1d = cute.coalesce(tile1d)
 
-    visualize_layout(layout_rm)
-    cute.printf(layout_rm,co_layout_rm)
+    visualize_layout(tile1d)
+    cute.printf(tile1d,co_tile1d)
 
-    #-----------------------------------------
-    layout_cm = cute.make_layout(shape = (4,(8,2)),
-                               stride= (16, (1,8))
-                               )
-    visualize_layout(layout_cm)
-    co_layout_cm = cute.coalesce(layout_cm)
-    cute.printf(layout_cm, co_layout_cm)
     #------------------------------------------
-    # column major 2d tile
-    tile2d_cm = cute.make_layout(shape= ((4,2), (4,2)),
-                              stride= ((1,4),(8,32))
+    # tile of shape (4,4)
+    tile2d = cute.make_layout(shape= ((4,2), (4,2)),
+                              stride= ((1,4),(8,32)) # column major
+                              # stride= ((1,4),(9,32)) # off by 1 column major
+                              # stride = ((8,32), (1,4)) # row major
                               )
-    visualize_layout(tile2d_cm)
-    co_tile2d_cm = cute.coalesce(tile2d_cm)
-    cute.printf(tile2d_cm,co_tile2d_cm)
+    visualize_layout(tile2d)
+    co_tile2d = cute.coalesce(tile2d)
+    cute.printf(tile2d,co_tile2d)
+
     #------------------------------------------
-    # row major 2d tile
-    tile2d_rm = cute.make_layout(shape= ((4,2), (4,2)),
-                                 stride = ((8,32), (1,4))
-                                 )
-    visualize_layout(tile2d_rm)
-    co_tile2d_rm = cute.coalesce(tile2d_rm)
-    cute.printf(tile2d_rm,co_tile2d_rm)
-    #------------------------------------------
-    another_tile2d_rm = cute.make_layout(shape = ((2,2), (4,4)), 
-                                         stride= ((32,4),(4,1))
+    # a tile of shape 2,4
+    rect_tile2d = cute.make_layout(shape = ((2,2), (4,4)), 
+                                         # stride= ((1,1000),(2,100))
+                                         stride= ((1,2),(4,16)) # column major
+                                         # stride = ((16,32),(1,4)) # row major
                                          )
-    visualize_layout(another_tile2d_rm)
+    visualize_layout(rect_tile2d)
+    co_rect_tile2d = cute.coalesce(rect_tile2d)
+    cute.printf(rect_tile2d,co_rect_tile2d)
+
+@cute.jit
+def example_composition_layouts():
+    a = cute.make_layout(shape=(4,4),
+                         stride=(2,8)
+                         )
+
+    b = cute.make_layout(shape = (4,4),
+                         stride = (10,1)
+                         )
+
+    c = cute.composition(b,a)
+    cute.printf(a)
+    cute.printf(b)
+    cute.printf(c)
+
+    visualize_layout(a)
+    visualize_layout(b)
+    visualize_layout(c)
+    
+
+    # composition ->
+    # c[i,j] = a(b[i,j])
+    # suppose i,j were 2,1
+    # b[2,1] = 9
+    # a[9] = 16 # always index a as column major dont know why 
     pass
 
 
 if __name__ == "__main__":
     # intro()
     # example_constructing_layouts()
-    example_coalescing_layouts()
+    # example_coalescing_layouts()
+    example_composition_layouts()
+    pass
 
