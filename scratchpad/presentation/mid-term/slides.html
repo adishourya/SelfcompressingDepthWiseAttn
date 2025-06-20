@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Mid-Term Presentation</title>
+
+	<link href="https://fonts.googleapis.com/css?family=Victor+Mono:400,700,400italic&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--bg-color: #ffffff;
+			--text-color: #000000;
+
+			--code-bg-color: #2e2e2e;
+			--code-text-color: #dcdcdc;
+		}
+
+		body {
+			font-family: 'Victor Mono', monospace;
+			margin: 0;
+			background-color: var(--bg-color);
+			color: var(--text-color);
+		}
+
+		h1, h2, h3 {
+			font-weight: normal;
+			color: var(--text-color);
+		}
+
+		.remark-slide-content {
+			background-color: var(--bg-color);
+			color: var(--text-color);
+			padding: 0 !important; /* Remove default padding */
+			margin: 0;
+		}
+
+		.split-slide {
+			display: flex;
+			flex-direction: row;
+			height: 100%;
+			width: 100%;
+		}
+
+		.left-column, .right-column {
+			width: 50%;
+			box-sizing: border-box;
+			align-items: left;
+		}
+
+		.left-column {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			padding: 1em;
+		}
+
+		.right-column {
+			background-color: #2e3440;
+			display: flex;
+			align-items: left;
+			justify-content: center;
+			padding:0em;
+		}
+
+		.remark-code, .remark-inline-code {
+			font-family: 'Victor Mono', monospace;
+			background-color: var(--code-bg-color);
+			color: var(--code-text-color);
+		}
+
+		video {
+			border: 1px solid #484848;
+			border-radius: 12px;
+		}
+
+	</style>
+</head>
+<body>
+	<textarea id="source">
+
+class: center, middle
+# Mid-Term Presentation
+
+---
+
+class: top, left
+# Agenda
+
+1. Introduction  
+2. Deep-dive  
+
+```py
+import numpy as np
+import numpy as np
+```
+
+
+
+---
+class: split-slide
+.left-column[
+# does everything work?
+```py
+import numpy as np
+```
+]
+
+.right-column[
+	<video width="600",height:"1800", controls>
+		<source src="./QuantizationAnimation.mp4" type="video/mp4">
+	</video>
+]
+
+<!-- slide stuff -->
+</textarea>
+
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>
+	var slideshow = remark.create({
+		ratio:"16:9",
+		slideNumberFormat: 'Slide %current% of %total%',
+		highlightLanguage: 'python',
+	}
+	);
+</script>
+</body>
+</html>
