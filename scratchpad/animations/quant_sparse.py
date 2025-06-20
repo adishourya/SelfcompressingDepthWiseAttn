@@ -188,4 +188,5 @@ class toSparse(manim.MovingCameraScene):
         self.wait()
 
 if __name__ == "__main__":
-    os.system("manim -qh --resolution 1920,1080 quant_sparse.py toSparse")
+    # os.system("manim -qh --resolution 1920,1080 quant_sparse.py toSparse")
+    os.system("manim -qm --resolution 960,1080 quant_sparse.py toSparse")

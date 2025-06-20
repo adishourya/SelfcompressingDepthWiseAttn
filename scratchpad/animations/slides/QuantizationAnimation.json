@@ -1,0 +1,21 @@
+{
+  "slides": [
+    {
+      "loop": false,
+      "auto_next": false,
+      "playback_rate": 1.0,
+      "reversed_playback_rate": 1.0,
+      "notes": "",
+      "dedent_notes": true,
+      "skip_animations": false,
+      "src": null,
+      "file": "slides/files/QuantizationAnimation/2195d28903b156949bcc3828b611bb5f2996ad952d659a9abee98f5b0f9bc00f.mp4",
+      "rev_file": "slides/files/QuantizationAnimation/2195d28903b156949bcc3828b611bb5f2996ad952d659a9abee98f5b0f9bc00f_reversed.mp4"
+    }
+  ],
+  "resolution": [
+    1920,
+    1080
+  ],
+  "background_color": "black"
+}

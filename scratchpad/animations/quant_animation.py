@@ -2,6 +2,7 @@ import os
 from turtle import left
 from typing_extensions import runtime
 from manim import *
+
 # config.background_color = WHITE
 # config["background_color"] = WHITE
 import numpy as np
@@ -14,9 +15,9 @@ def qbits(x, b=6.0, e=-8.0):
     result = np.exp2(e) * x_round
     return (result, x_scaled, x_clipped, x_round),(-1*np.exp2(b-1), np.exp2(b-1)-1)
 
+# class QuantizationAnimation(MovingCameraScene):
 class QuantizationAnimation(MovingCameraScene):
     
-
     def construct(self):
         # dont change this... [took a while to find a good value for animation]
         e_bit = -3.5
@@ -186,3 +187,4 @@ class QuantizationAnimation(MovingCameraScene):
 
 if __name__ == "__main__":
     os.system("manim -qh --resolution 1920,1080 quant_animation.py QuantizationAnimation")
+    # os.system("manim -qm --resolution 960,1080 quant_animation.py QuantizationAnimation")
