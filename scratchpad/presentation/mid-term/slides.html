@@ -5,13 +5,23 @@
 	<title>Mid-Term Presentation</title>
 
 	<link href="https://fonts.googleapis.com/css?family=Victor+Mono:400,700,400italic&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Lekton:400,700,400italic&display=swap" rel="stylesheet">
+
+	<link href="https://fonts.googleapis.com/css?family=Nova+Mono:400,700,400italic&display=swap" rel="stylesheet">
+	<!-- this is very informal -->
+	<!-- <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display:400,700,400italic&display=swap" rel="stylesheet"> -->
 	<style>
 		:root {
 			--bg-color: #ffffff;
 			--text-color: #000000;
 
-			--code-bg-color: #2e2e2e;
-			--code-text-color: #dcdcdc;
+			--rc1-color: #dddddd;
+			--rc2-color: #81a1c1;
+			--rc3-color: #ebcb8b;
+			--rc4-color: #88c0d0;
+
+			--code-bg-color: #dddddd;
+			--code-text-color: #000000;
 		}
 
 		body {
@@ -20,6 +30,7 @@
 			background-color: var(--bg-color);
 			color: var(--text-color);
 		}
+
 
 		h1, h2, h3 {
 			font-weight: normal;
@@ -40,82 +51,689 @@
 			width: 100%;
 		}
 
-		.left-column, .right-column {
-			width: 50%;
-			box-sizing: border-box;
-			align-items: left;
+		<!-- draw horizontal line -->
+		/* Horizontal divider container */
+		.divider {
+			width: 100%;
+			height: 2px;
+			background-color: black;
+			margin: 1em 0;
 		}
 
-		.left-column {
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			padding: 1em;
+		/* Colored text containers */
+		.rtext, .rtext h1, .rtext h2, .rtext h3 {
+			color: red !important;
 		}
 
-		.right-column {
-			background-color: #2e3440;
-			display: flex;
-			align-items: left;
-			justify-content: center;
-			padding:0em;
+		.gtext, .gtext h1, .gtext h2, .gtext h3 {
+			color: green;
 		}
 
-		.remark-code, .remark-inline-code {
-			font-family: 'Victor Mono', monospace;
-			background-color: var(--code-bg-color);
-			color: var(--code-text-color);
+		.btext, .btext h1, .btext h2, .btext h3 {
+			color: blue;
 		}
 
-		video {
-			border: 1px solid #484848;
-			border-radius: 12px;
+		.ortext, .ortext h1, .ortext h2, .ortext h3 {
+			color: orange;
 		}
+
+
+	.lc {
+		display: flex;
+		flex-direction: column;
+		padding: 0.5em;
+		width: 50%;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.rc0 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--bg-color);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		width: 50%;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+
+
+	.rc1 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--rc1-color);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		width: 50%;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.rc2 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--rc2-color);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		width: 50%;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+
+	.rc3 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--rc3-color);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		width: 50%;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.rc4 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--rc4-color);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		width: 50%;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.rcb {
+		border-radius: 8px 0px 0px 8px;
+		background-color: black;
+		padding: 0.5em;
+		display: flex;
+		align-items: left;
+		justify-content: center;
+		padding:0em;
+		width: 50%;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.remark-code, .remark-inline-code {
+		background-color: var(--code-bg-color);
+		color: var(--code-text-color);
+		border-radius: 12px;
+		font-family: 'Lekton', monospace;
+		line-height: 1.2em;
+		font-size: 0.8em;
+	}
+
+	video {
+		border: 1px solid #484848;
+		border-radius: 8px;
+	}
 
 	</style>
 </head>
 <body>
+<!-- start here... -->
 	<textarea id="source">
+
 
 class: center, middle
 # Mid-Term Presentation
+	-Adi
+[Github](https://github.com/adishourya/SelfcompressingDepthWiseAttn)
+[Experiments](https://www.comet.com/adishourya/convolution-compressing/view/new/panels)
+
 
 ---
-
-class: top, left
+class: split-slide
+.lc[
 # Agenda
+1. Background  
+2. Experiment
+3. Ideas and Questions
+]
 
-1. Introduction  
-2. Deep-dive  
+---
+class: split-slide
+.lc[
+.rtext[# Problem we are trying to solve]
+]
+
+.rc3[
+### Process High/Medium Resolution Images for classification or segmentation such that:
+1. Use less number of parameters (less flops) so that they can fit on smaller devices.
+2. Achieve "Good" Accuracy/Fidelity.
+3. (Optional) Achieve Smooth Saliency
+4. High Throughput in Edge Devices (we dont have any so... Ampere) and Big Devices (Hopper).
+
+##### We will try to solve it using a self-compression based model (through QAT).
+]
+
+
+---
+class: split-slide
+.lc[
+# Self Compression (Quantization Function)
+- Differntiable bit depth (b) and exp bit (e)
+- we will use this quantization function to quantize all the big matrices of our network.
+- This `q()` looks very similar to any other Q8A. For an example
 
 ```py
-import numpy as np
-import numpy as np
+# int8 quant for some scaling factor s
+#+ and offset o
+q(x) = clip((x/s)+o,-10,53)
 ```
+]
+.rc1[
+![article](./quant_func.png)
+- [article at](https://arxiv.org/abs/2301.13142)
+]
+
 
 
 
 ---
 class: split-slide
-.left-column[
-# does everything work?
+.lc[
+# Self Compression (Quantization Function)
+- Our scaling factor will be given by some exponent bit e.
 ```py
-import numpy as np
+def quantize_weight(x,b=2,e=-8):
+		x_scaled = x/torch.exp2(e)
+		half = torch.exp2(b-1)
+		x_clipped = torch.clip(x_scaled,-1*half,half-1)
+		x_round = torch.round(x_clipped)
+		x_scaled_back = torch.exp2(e) * x_round
+		return x_scaled_back
 ```
 ]
 
-.right-column[
+.rcb[
 	<video width="600",height:"1800", controls>
 		<source src="./QuantizationAnimation.mp4" type="video/mp4">
 	</video>
 ]
 
+
+
+
+---
+class: split-slide
+.lc[
+# Self Compression (Quantization Function)
+- the derivative of a rounding function is either 0 or not-defined.
+- Since `b` and `e` are inside the rounding function we need STE Rounding.
+- With STE estimator we can now perform quantization aware training.
+]
+
+.rc1[
+```py
+class STERound(torch.autograd.Function):
+		"""
+		same gradient as parent node. 
+		Also called as pass through gradient.
+		or Straight Through Estimator.
+		"""
+		@staticmethod
+		def forward(ctx,x):
+				return torch.round(x)
+
+		@staticmethod
+		def backward(ctx,upstream):
+				"""
+				local jacobian is 1.
+				"""
+				return upstream
+
+```
+]
+
+
+
+
+
+
+---
+class: split-slide
+.lc[
+# Self Compression (Quantization Function)
+- If During Training:
+	- Bit depth increases: counters effect of clipping.
+	- Abs(Exp) bit increases: counters effect of rounding. 
+- if a weight or a group of weight reach a bit depth of 0.
+ - The tensors are pruned for next iteration.
+]
+
+.rc1-black[
+	<video width="600",height:"1800", controls>
+		<source src="./tosparse.mp4" type="video/mp4">
+	</video>
+]
+
+
+---
+class:split-slide
+.lc[
+# Training Objective
+- we will penalize our model by the current size of the size of the model.
+- the current size is given by the sum of the layer size of the targeted "quantized" modules.
+- This also acts as a regularization term. (like the l1 loss which gets penalized by the sum of model's `abs(weights)`)
+
+]
+
+.rc1[
+```py
+with torch.autocast(device_type="cuda",dtype=self.amp_dtype):
+		out = self.model(batch_img)
+		# end of fwd pass
+		# current size of model / init size of model
+		bit_decay = self._qlayersize() / self.qtot_init
+		# add penalty term
+		loss = cross_entropy(out,batch_label)
+			+ self.gamma * bit_decay
+```
+]
+
+
+---
+class:center,top
+# Compression Heuristics Needed
+	In my project plan i proposed a model with convolution in skip connections to aid linear attention improve its local
+	inductive bias (which also had some full softmax attention at the start of the layer)
+
+.left[
+1. Convolution Heuristics (We get for free from the article, authors did not release code)
+2. nn.Linear (Done)
+3. Full Sotmax Attention (Decided on Heuristics, not implemented yet)
+4. Linear Attention (Not decided on Heuristics)
+]
+
+.divider[<hr>]
+.left[
+.gtext[Experiments Done:]
+1. Pure Convolution Model (No MLP Head to arrive at logits)
+2. Convolution + MLP Head 
+
+.divider[<hr>]
+.rtext[Experiments to Do]:
+1. Conv + Full Softmax Attn + Linear Attn
+]
+
+---
+class: split-slide
+
+.lc[
+# Convolution Heuristics
+- We tie a quantization function to each kernel see `__init__`
+- Calculating Size layer which contributes to the penalty term is proportional to the actual active size of the layer. see `size_layer()`
+```py
+# a much more accurate size would have been
+size_layer = prods* torch.where(self.b>0,1,0)
+# but the above only promotes sparsity.
+#+ (sum of bit depth) promotes both compression and sparsity
+```
+- We Quantize the weights of the layer every forward pass. see `__call__`
+- Bad training batches can result in "irreversible" forgetting
+]
+
+.rc1[
+```py
+class Qconv(torch.nn.Module):
+		"""
+		weight tying exp_bits and depth_bits
+		note number  of output  channels  is number of filters launched
+		"""
+		def  __init__ (self,...):
+				...
+				# 1 for each kernel (out_channel).. 
+				-> self.exp_bit = torch.ones(out_channels,1,1,1)*e
+				-> self.depth_bit = torch.ones(out_channels,1,1,1)*b
+				...
+
+		def size_layer(self):
+				prods = torch.as_tensor(self.weight.shape[1:])
+				# height * width * sum of depths of filters
+				-> size = torch.prod(prods) *
+					torch.sum(torch.relu(self.depth_bit))
+				return size
+
+		def __call__(self,x):
+				# quantize every forward pass
+				W = self._quantized_weight()
+				return F.conv2d(x,W,padding=self.padding)
+```
+]
+
+---
+class:center,top
+
+<video width="1200",height:"1080", controls>
+	<source src="./compressKernels.mp4" type="video/mp4">
+</video>
+
+---
+class: split-slide
+.lc[
+# Pure Convolution Model
+- [Pure Convolution Experiment](https://www.comet.com/adishourya/convolution-compressing/9e515a01e6a944899be91f42f80cb304?compareXAxis=step&experiment-tab=panels&prevPath=%2Fadishourya%2Fconvolution-compressing%2Fview%2Fnew%2Fpanels&showOutliers=true&smoothing=0&xAxis=step)
+- we pruned (154-107)/154 ~(1/3 of the total kernels) with no accuracy degradation.
+
+- <img src="./activekernels_pureconv.png" width="300" height="300">
+
+]
+
+.rc1[
+```py
+class QPureconvModel(torch.nn.Module):
+		def __init__(self):
+				super().__init__()
+				self.conv1 = Qconv(1, 32,b=2)
+				self.conv2 = Qconv(32,64,b=2)
+				self.bn1 = torch.nn.BatchNorm2d(64)
+
+				self.conv3 = Qconv(64,32,b=1.5,e=-7)
+				self.conv4 = Qconv(32,16,b=1.3,e=-6)
+				self.bn2 = torch.nn.BatchNorm2d(16)
+				
+				self.pool = torch.nn.MaxPool2d(2, 2)
+
+				# none of these would be pruned
+				self.conv_lin = Qconv(16, 10, kernel_size=7,padding=0)
+
+		def forward(self, x):
+				...
+				pool2 = self.pool(conv4_out)
+				# flattening trick with conv
+				flat = self.conv_lin(pool2) #B, 10, 1,1
+				logits = flat.view(flat.size(0),-1) # B,10
+				return logits
+```
+```
+Total Conv kernels = 32+64+32+16+10 = 154
+```
+`!NOTE we will obviously not be able to prune the conv_lin kernels as they result directly to logits`
+]
+
+
+---
+class:split-slide
+.lc[
+# nn.Linear Heuristics
+- Our Idea follows L1 feature selection. Prune the associated dual basis if the feature does not influence prediction.
+- So we tie a quantization function to each row (`m`) of nn.Linear
+- similar to convolution the size layer is proportional to the true size (but not accurate, they cancel out when i divide with total parameters at init).
+]
+
+.rc1[
+```py
+class QlinearMLP(torch.nn.Module):
+		"""
+		we will only use this to make mlp heads
+		"""
+		def __init__(self,m,n,...):
+				"""
+				maps R:m->n
+				"""
+				...
+				self.depth_bit = torch.ones(1,m) * b
+				self.exp_bit = torch.ones(1,m) * e
+
+		def size_layer(self):
+				return torch.sum(torch.relu(self.depth_bit)) * self.n
+
+		def __call__(self,x):
+				# quantize weight every forward pass
+				W = self._quantized_weight()
+				return F.linear(x,W,bias=self.linear.bias)
+```
+]
+
+---
+class:center
+
+<video width="1200",height:"1080", controls>
+	<source src="./Matrix.mp4" type="video/mp4">
+</video>
+
+
+---
+class: split-slide
+.lc[
+# nn.Linear Heuristics
+- [Conv+Linear Experiment](https://www.comet.com/adishourya/convolution-compressing/23b3cc857e2243e4a006ca513c5c5d92?compareXAxis=step&experiment-tab=panels&prevPath=%2Fadishourya%2Fconvolution-compressing%2Fview%2Fnew%2Fpanels&showOutliers=true&smoothing=0&xAxis=step)
+- we pruned 223/1600 ~(14%) without any accuracy degradation. 
+- <img src="./activeduals.png" width="300" height="300">
+]
+
+
+.rc1[
+```py
+class QconvModel(torch.nn.Module):
+		def __init__(self):
+				super().__init__()
+				self.conv1 = Qconv(1, 16,b=2)
+				self.conv2 = Qconv(16,16,b=2)
+				self.conv3 = Qconv(16,32,b=1.5,e=-7)
+				self.conv4 = Qconv(32,32,b=1.3,e=-6)
+				self.pool = torch.nn.MaxPool2d(2, 2)
+				self.bn1 = torch.nn.BatchNorm2d(16)
+				self.bn2 = torch.nn.BatchNorm2d(32)
+
+				self.L1 = QlinearMLP(32*7*7, 32)
+				# L2 will never be pruned...
+				self.L2 = QlinearMLP(32, 10)
+
+		def forward(self, x):
+				# (2 convolutions -> bn -> pool) * 2 
+				...
+				# then linear layers
+				flat = torch.flatten(pool2, 1) # flatten except batch
+				l1 = torch.nn.functional.gelu(self.L1(flat))
+				l2 = torch.nn.functional.gelu(self.L2(l1))
+				logits = l2
+				return logits
+```
+```
+Total Duals: 32*7*7 + 32 = 1600
+Total Conv: 16+16 + 32+32= 96
+```
+]
+
+
+---
+class:center,middle
+# Metrics other than Pruning
+
+---
+class:split-slide
+
+.lc[
+# Total Compression
+<div style="text-align: center;">
+	<img src="./total_compression.png" width="400" height="400">
+</div>
+- Question: How do i calculate actual bit depth of a quantized fp32 (not ours which supports fractional bit depth)?
+]
+
+.rc4[
+#Throughput
+<div style="text-align: center;">
+	<img src="./improve_trainingtime.png" width="400" height="400">
+</div>
+- If training time improves then fwd(+bwd) pass improves.. which implies improvement in throughput
+]
+
+
+---
+class:center,top
+# Our results
+.left[
+- .gtext[Total Compression] (Calculated with size of layers):
+	- We got 15% compression in 1000 epochs (intialized with `~70,000` parameters) on *linear layer+ convolutional layer*.
+	- We got 0.2% expansion in 1000 epochs (intialized with `~57,000` parameters) on *pure convolutional layer*.
+
+- Article does not say the intialized size of the model nor how it calculates "number of bits" are they just doing 2^2(ceil(b)-1) ?
+	- if so then my linear decrease in the sum of bit depth * (constant) will also look exp decreasing as article.
+
+.divider[<hr>]
+
+- .rtext[Total Throughput]
+	- no increase in throughput in either of the models.
+	- they observe a linear improvement in training time.
+]
+
+---
+class: center, middle
+# More Ideas/Questions
+
+
+---
+class: split-slide
+.lc[
+# Compressing Attention
+- Idea : we would like to tie a quantization function to each attention head
+- .rtext[Logistical Problems]:
+	- the `qkv` of attn heads are initialized inside the device function (see `create_tensor()`) so we cannot broadcast our quantization function to quantize them per head.
+		which means we cannot use off-the shelf implementation flash attention (both softmax and linear attention).
+	- Have to implement for both Ampere and Hopper
+	- 4 implementations (2 big ones).
+]
+
+.rc1[
+```py
+def run_flash_attention_fwd(self,..):
+		...
+		def create_tensor():
+		q = create_tensor(
+		batch_size, seqlen_q, num_head, head_dim,
+			cutlass_torch.dtype(dtype)
+		)
+		k = create_tensor(
+		batch_size, seqlen_k, num_head, head_dim,
+			cutlass_torch.dtype(dtype)
+		)
+		v = create_tensor(
+		batch_size, seqlen_k, num_head, head_dim,
+			cutlass_torch.dtype(dtype)
+		)
+		o = create_tensor(
+		batch_size, seqlen_q, num_head, head_dim,
+			cutlass_torch.dtype(dtype)
+		)
+		...
+```
+[CuTe's implementation](https://github.com/NVIDIA/cutlass/blob/main/examples/python/CuTeDSL/ampere/flash_attention_v2.py)
+
+```Quick Question : can i email you with questions that i have on writing device functions ? (also layout algebra)```
+]
+
+---
+class: split-slide
+.lc[
+# Writing Backward Pass for our Quantization function
+- My Backward Pass does not pass for all unit tests.
+- Fails specially for low exp bit cases.
+- Needs to be fixed before writing bwd pass for flash attn.
+- [my bwd pass implementation](https://github.com/adishourya/SelfcompressingDepthWiseAttn/blob/master/scratchpad/quant/backward_unit_quant.py)
+]
+
+.rc1[
+```py
+def inspect_gradient():
+		x = torch.linspace(-3,3,20)
+		print(f"{x=}")
+		x.requires_grad_()
+
+		b = torch.tensor(3.0)
+		b.requires_grad_()
+		brange = torch.exp2(b-1)
+		brange.retain_grad()
+
+		e = torch.tensor(-5.0)
+		e.requires_grad_()
+
+		x_scaled = x/torch.exp2(e)
+		x_scaled.retain_grad()
+		print(f"{x_scaled=}")
+
+		x_clipped = torch.clip(x_scaled,-1*brange, brange-1)
+		x_clipped.retain_grad()
+		print(f"clipped range {-1*torch.exp2(b-1)}, {torch.exp2(b-1)-1}")
+		print(f"{x_clipped=}")
+
+		x_round = steRound(x_clipped)
+		x_round.retain_grad()
+		print(f"{x_round=}")
+
+		result = torch.exp2(e) * x_round
+		result.retain_grad()
+		print(f"{result=}")
+
+		loss = result.sum()
+		loss.backward()
+```
+]
+
+---
+class: split-slide
+.lc[
+# Writing Bwd Pass
+- <img src="unit_test_bwd.png" height="500" width="500">
+]
+
+.rc1[
+```py
+# unit tests
+our_resultGrad = torch.ones_like(result)
+assert torch.allclose(result.grad, our_resultGrad), "result.grad check failed"
+
+our_roundGrad = torch.ones_like(result) * torch.exp2(e)
+assert torch.allclose(x_round.grad, our_roundGrad), "x_round.grad check failed"
+assert torch.equal(x_clipped.grad, x_round.grad), "x_clipped.grad != x_round.grad"
+
+low_range = -1 * torch.exp2(b - 1)
+high_range = torch.exp2(b - 1) - 1
+dx_scaled_local = torch.where(((x_scaled >= low_range)
+							& (x_scaled <= high_range)), 1.0, 0.0)
+our_xscaledGrad = x_clipped.grad * dx_scaled_local
+assert torch.allclose(x_scaled.grad, our_xscaledGrad), "x_scaled.grad check failed"
+
+our_xGrad = x_scaled.grad * (1 / torch.exp2(e))
+assert torch.allclose(x.grad, our_xGrad), "x.grad check failed"
+
+brangegrad_branch1 = torch.sum(torch.where((x_scaled <= low_range),
+													-1.0, 0.0))
+brangegrad_branch2 = torch.sum(torch.where((x_scaled >= high_range),
+													1.0, 0.0))
+local_brangeGrad = (brangegrad_branch1 + brangegrad_branch2)
+our_brangeGrad = torch.sum(x_scaled.grad * local_brangeGrad)
+assert torch.allclose(brange.grad, our_brangeGrad), f"brange.grad check failed, difference : {brange.grad - our_brangeGrad}"
+
+our_bGrad = brange.grad * brange * torch.log(torch.tensor(2.0))
+assert torch.allclose(b.grad, our_bGrad), "b.grad check failed"
+
+de_branch1 = result.grad * result * torch.log(torch.tensor(2.0))
+de_branch2 = x_scaled.grad * x_scaled *-1* torch.log(torch.tensor(2.0))
+de = de_branch1 + de_branch2
+assert torch.allclose(e.grad, de.sum()), f"e.grad check failed, difference : {e.grad - de.sum()}"
+```
+]
+
+
+
+
+---
+class:center,middle
+# End of slides
 <!-- slide stuff -->
 </textarea>
 
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script>
 	var slideshow = remark.create({
+		navigation:{scroll:false,touch:false,click:false},
 		ratio:"16:9",
 		slideNumberFormat: 'Slide %current% of %total%',
 		highlightLanguage: 'python',

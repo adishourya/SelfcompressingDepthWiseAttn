@@ -186,5 +186,6 @@ class QuantizationAnimation(MovingCameraScene):
 
 
 if __name__ == "__main__":
-    os.system("manim -qh --resolution 1920,1080 quant_animation.py QuantizationAnimation")
+    # os.system("manim -qh --resolution 1920,1080 quant_animation.py QuantizationAnimation")
+    os.system("manim -qh --resolution 960,1080 quant_animation.py QuantizationAnimation")
     # os.system("manim -qm --resolution 960,1080 quant_animation.py QuantizationAnimation")
