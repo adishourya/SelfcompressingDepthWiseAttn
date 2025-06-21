@@ -641,38 +641,31 @@ class: split-slide
 
 .rc1[
 ```py
-def inspect_gradient():
-		x = torch.linspace(-3,3,20)
-		print(f"{x=}")
-		x.requires_grad_()
+s = torch.tensor(s)
+b = torch.tensor(b)
+s.requires_grad_()
+b.requires_grad_()
 
-		b = torch.tensor(3.0)
-		b.requires_grad_()
-		brange = torch.exp2(b-1)
-		brange.retain_grad()
+x = torch.linspace(-3,3,100)
+x.requires_grad_()
 
-		e = torch.tensor(-5.0)
-		e.requires_grad_()
+x_scaled = x/ torch.exp2(s)
+x_scaled.retain_grad()
 
-		x_scaled = x/torch.exp2(e)
-		x_scaled.retain_grad()
-		print(f"{x_scaled=}")
 
-		x_clipped = torch.clip(x_scaled,-1*brange, brange-1)
-		x_clipped.retain_grad()
-		print(f"clipped range {-1*torch.exp2(b-1)}, {torch.exp2(b-1)-1}")
-		print(f"{x_clipped=}")
+half = torch.exp2(b-1)
+half.retain_grad()
 
-		x_round = steRound(x_clipped)
-		x_round.retain_grad()
-		print(f"{x_round=}")
+x_round = steRound(x_scaled)
+x_round.retain_grad()
 
-		result = torch.exp2(e) * x_round
-		result.retain_grad()
-		print(f"{result=}")
+y = torch.clip(x_round,-1*half,half-1)
+y.retain_grad()
 
-		loss = result.sum()
-		loss.backward()
+z = torch.exp2(s) * y
+z.retain_grad()
+loss = z.sum()
+loss.backward()
 ```
 ]
 
@@ -680,44 +673,32 @@ def inspect_gradient():
 class: split-slide
 .lc[
 # Writing Bwd Pass
-- <img src="unit_test_bwd.png" height="500" width="500">
+- <img src="unit_tests.png" height="500" width="500">
 ]
 
 .rc1[
 ```py
-# unit tests
-our_resultGrad = torch.ones_like(result)
-assert torch.allclose(result.grad, our_resultGrad), "result.grad check failed"
+def inspect_clip():
+		x = torch.linspace(-1,1,50)
+		x.requires_grad_()
 
-our_roundGrad = torch.ones_like(result) * torch.exp2(e)
-assert torch.allclose(x_round.grad, our_roundGrad), "x_round.grad check failed"
-assert torch.equal(x_clipped.grad, x_round.grad), "x_clipped.grad != x_round.grad"
-
-low_range = -1 * torch.exp2(b - 1)
-high_range = torch.exp2(b - 1) - 1
-dx_scaled_local = torch.where(((x_scaled >= low_range)
-							& (x_scaled <= high_range)), 1.0, 0.0)
-our_xscaledGrad = x_clipped.grad * dx_scaled_local
-assert torch.allclose(x_scaled.grad, our_xscaledGrad), "x_scaled.grad check failed"
-
-our_xGrad = x_scaled.grad * (1 / torch.exp2(e))
-assert torch.allclose(x.grad, our_xGrad), "x.grad check failed"
-
-brangegrad_branch1 = torch.sum(torch.where((x_scaled <= low_range),
-													-1.0, 0.0))
-brangegrad_branch2 = torch.sum(torch.where((x_scaled >= high_range),
-													1.0, 0.0))
-local_brangeGrad = (brangegrad_branch1 + brangegrad_branch2)
-our_brangeGrad = torch.sum(x_scaled.grad * local_brangeGrad)
-assert torch.allclose(brange.grad, our_brangeGrad), f"brange.grad check failed, difference : {brange.grad - our_brangeGrad}"
-
-our_bGrad = brange.grad * brange * torch.log(torch.tensor(2.0))
-assert torch.allclose(b.grad, our_bGrad), "b.grad check failed"
-
-de_branch1 = result.grad * result * torch.log(torch.tensor(2.0))
-de_branch2 = x_scaled.grad * x_scaled *-1* torch.log(torch.tensor(2.0))
-de = de_branch1 + de_branch2
-assert torch.allclose(e.grad, de.sum()), f"e.grad check failed, difference : {e.grad - de.sum()}"
+		# happens at b=0. as exp2(b-1) = 1/2
+		half = torch.tensor(0.5)
+		half.requires_grad_()
+	
+		# that is -half = half-1 = -0.5
+		y = torch.clip(x,-half,half-1)
+		y.retain_grad()
+		print(y)
+		z = y.sum()
+		z.backward()
+		print(y.grad)
+		print(half.grad)
+```
+```
+tensor([-0.5000, ..., -0.5000, -0.5000], grad_fn=<ClampBackward0>)
+tensor([1., 1., ...., 1.])
+tensor(37.) ????
 ```
 ]
 
