@@ -13,7 +13,7 @@
 	<!-- <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display:400,700,400italic&display=swap" rel="stylesheet"> -->
 	<style>
 		:root {
-			--bg-color: #f2e5bc;
+			--bg-color: #f3ead3;
 			--text-color:#000;
 
 			--rc-color:  #f1f4f7
@@ -47,6 +47,16 @@
 			transition: none !important;
 			transform: translateY(0);
 			opacity: 1;
+		}
+
+
+		.remark-slide-number {
+			position: center;
+			left: 1em;           /* Move to the left */
+			bottom: 1em;         /* Adjust vertical position if needed */
+			right: auto;         /* Cancel default right alignment */
+			color: var(--text-color);         /* Optional: subtle color */
+			font-size: 0.9em;    /* Optional: scale */
 		}
 
 		.slide-to-prev {
@@ -90,20 +100,32 @@
 
 		/* Colored text containers */
 		.rtext, .rtext h1, .rtext h2, .rtext h3 {
-			color: red !important;
+			color: #f85552 !important;
 		}
 
 		.gtext, .gtext h1, .gtext h2, .gtext h3 {
-			color: green;
+			color: #35a77c;
 		}
 
 		.btext, .btext h1, .btext h2, .btext h3 {
-			color: blue;
+			color: #3a94c5;
 		}
 
 		.ortext, .ortext h1, .ortext h2, .ortext h3 {
-			color: orange;
+			color: #f57d26;
 		}
+
+
+		blockquote {
+		border-left: 0.3em solid var(--text-color);
+		background-color: color-mix(in srgb, var(--bg-color), white 38%);
+		padding: 1em;
+		font-style: italic;
+		font-size: 0.6em;
+		color: --var(--text-color);
+		quotes: "\201C""\201D""\2018""\2019";
+		}
+
 
 
 	a:link {
@@ -225,7 +247,8 @@
 
 class: center, middle
 # Mid-Term Presentation
--Adi
+> -Adi
+
 
 [Github](https://github.com/adishourya/SelfcompressingDepthWiseAttn)
 [Experiments](https://www.comet.com/adishourya/convolution-compressing/view/new/panels)
@@ -243,8 +266,8 @@ class: split-slide
 ---
 class: split-slide
 .lc[
-# Problem we are trying to solve
-- .ortext[### Process High/Medium Resolution Images for classification or segmentation]
+# .rtext[Problem]
+### Process High/Medium Resolution Images for classification or segmentation
 ]
 
 .rcb[
@@ -254,14 +277,14 @@ such that we:
 3. Less FLOPS so we get high throughput in Edge Devices (we dont have any so... Ampere) and Big Devices (Hopper).
 4. (Optional) Achieve Smooth Saliency
 
-- .ortext[#### We will try to solve it using a self-compression based model (through QAT).]
+#### .gtext[We will try to solve it using a self-compression based model (through QAT).]
 ]
 
 
 ---
 class: split-slide
 .lc[
-# Self Compression (Quantization Function)
+# Quantization Function
 - Differntiable bit depth (b) and exp bit (e)
 - we will use this quantization function to quantize all the big matrices of our network.
 - This `q()` looks very similar to any other Q8A. For an example
@@ -283,7 +306,7 @@ q(x) = clip((x/s)+o,-10,53)
 ---
 class: split-slide
 .lc[
-# Self Compression (Quantization Function)
+# Quantization Function
 - Our scaling factor will be given by some exponent bit e.
 ```py
 def quantize_weight(x,b=2,e=-8):
@@ -308,7 +331,7 @@ def quantize_weight(x,b=2,e=-8):
 ---
 class: split-slide
 .lc[
-# Self Compression (Quantization Function)
+# Quantization Function
 - the derivative of a rounding function is either 0 or not-defined.
 - Since `b` and `e` are inside the rounding function we need STE Rounding.
 - With STE estimator we can now perform quantization aware training.
@@ -344,7 +367,7 @@ class STERound(torch.autograd.Function):
 ---
 class: split-slide
 .lc[
-# Self Compression (Quantization Function)
+# Quantization Function
 - If During Training:
 	- Bit depth increases: counters effect of clipping.
 	- Abs(Exp) bit increases: counters effect of rounding. 
@@ -387,7 +410,8 @@ with torch.autocast(device_type="cuda",
 
 ---
 class:center,top
-#### In my project plan i proposed a model with convolution in skip connections to aid linear attention improve its local inductive bias (which also had some full softmax attention at the start of the layer)
+> In my project plan i proposed a model with convolution in skip connections to aid linear attention improve its local inductive bias (which also had some full softmax attention at the start of the layer)
+
 # Compression Heuristics Needed
 
 .left[
@@ -465,7 +489,7 @@ class: split-slide
 .lc[
 # Pure Convolution Model
 - [Pure Convolution Experiment](https://www.comet.com/adishourya/convolution-compressing/9e515a01e6a944899be91f42f80cb304?compareXAxis=step&experiment-tab=panels&prevPath=%2Fadishourya%2Fconvolution-compressing%2Fview%2Fnew%2Fpanels&showOutliers=true&smoothing=0&xAxis=step)
-- we pruned 154-107/154 ~ 1/3 of the total conv kernels without any accuracy degradation.
+- we pruned (154-107)/154 ~ 1/3 of the total conv kernels without any accuracy degradation.
 - .gtext[NOTE], we will obviously not be able to prune the conv_lin kernels as they result directly to logits
 
 ]
@@ -749,9 +773,15 @@ ours_halfgrad = (y.grad * ours_half_lj).sum()
 ]
 
 ---
-class: center, top
+class: split-slide
+.loc[
 ## Compressing Softmax Attention
-<img src="./scratchpad/presentation/mid-term/learned_temp.png" height="500" width="800">
+- tie quantization function to each head.
+- temperature term can be normalized bit depth across attention head. (guarentees not all attn heads will be pruned)
+]
+.rc1[
+<img src="./scratchpad/presentation/mid-term/learned_temp.png" height="500" width="600">
+]
 
 
 
