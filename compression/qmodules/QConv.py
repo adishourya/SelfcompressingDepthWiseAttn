@@ -46,8 +46,10 @@ class Qconv(torch.nn.Module):
         size = torch.prod(prods) *  torch.sum(torch.relu(self.depth_bit))
         return size
 
-    def _max_range(self):
-        return torch.max(torch.exp2(-1*self.exp_bit) * (torch.exp2(self.depth_bit)-1))
+    def _fakebits(self):
+        return torch.sum(
+            torch.exp2(torch.relu(torch.ceil(self.depth_bit))) * torch.prod(torch.as_tensor(self.weight.shape[1:]))
+            ) 
 
     def _quantized_weight(self):
         b = torch.relu(self.depth_bit)

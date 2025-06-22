@@ -18,8 +18,8 @@ from qmodules.Models.PureConvModel import QPureconvModel
 from QTrainer import QTrainer
 
 train_config = dict(
-    model = QPureconvModel, 
-    # model = QconvModel, 
+    # model = QPureconvModel, 
+    model = QconvModel, 
     train_loader = train_loader,
     eval_loader = eval_loader,
     dtype = torch.float32,      # overflows if natively trained at fp16

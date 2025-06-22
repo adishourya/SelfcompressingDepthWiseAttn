@@ -87,18 +87,19 @@ class QTrainer:
         self.tot_init = sum(p.numel() for group in self.optim.param_groups for p in group['params'] if p.requires_grad)
         self.qtot_init = self._qlayersize() 
         self.tot_qparams = torch.sum(torch.tensor([p_weight.numel() for p,p_weight in self.model.named_parameters() if "_bit" in p]))
-        self.model_quant_range = self._layer_max_range() 
+        self.model_fbits = self.__model_fbits() 
     
         print(f"Total Parameters {self.tot_init=}")
         print(f"Layer Size at Init: {self.qtot_init}")
         print(f"of which compression are :{self.tot_qparams=}")
         print(f"compression factor at init {self.gamma * self._qlayersize()}")
-        print(f"Model Bits: {self.model_quant_range=}")
+        print(f"Model Bits: {self.model_fbits=}")
 
         if self.logging:
             self.experiment.log_metric(name="Init Parameters", value=self.tot_init)
             self.experiment.log_metric(name="Total Qparams ", value=self.tot_qparams)
             self.experiment.log_metric(name="Total Layersize ", value=self.qtot_init)
+            self.experiment.log_metric(name="Total Fbits", value=self.model_fbits)
 
 
 
@@ -125,13 +126,18 @@ class QTrainer:
         return size
 
 
-    def _layer_max_range(self):
+    def __model_fbits(self):
         """
-        Ideally we should report max of all the layers... but the sum would also be more sensitive to track.
+        tracks 2^(2b -1) of our model
         """
-        size_conv = torch.sum(torch.tensor([layer._max_range() for layer in self.model.modules() if isinstance(layer,Qconv)]))
-        size_lin =  torch.sum(torch.tensor([layer._max_range() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
-        return (size_conv + size_lin)
+        size = torch.sum(
+                torch.tensor([layer._fakebits() 
+                              for layer in self.model.modules() if isinstance(layer,self.model._targetModules())
+                              ])
+                )
+        # size_conv = torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,Qconv)]))
+        # size_lin =  torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
+        return size
 
 
     def _activekernelscount(self):
@@ -207,10 +213,10 @@ class QTrainer:
         torch.cuda.synchronize()
         elapsed_time = start_time.elapsed_time(end_time)/1000.0
 
-        quant_range = self._layer_max_range()
+        model_bits = self.__model_fbits()
         avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
         print(total_correct,avg_accuracy,total_samples)
-        return avg_loss, avg_accuracy, quant_range, total_samples/elapsed_time
+        return avg_loss, avg_accuracy, model_bits, total_samples/elapsed_time
 
     # @torch.compile # this will not work if you want to track modules states in dict and such.. dynamo error. compile model instead.
     def train(self,num_epochs=10):
@@ -258,13 +264,13 @@ class QTrainer:
             # eval tracking
             if epoch % self.eval_track_freq == 0:
                 self.model.eval()
-                avg_loss , avg_accuracy, model_quant_range, throughput = self.eval_run()
-                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {model_quant_range=} {throughput=}")
+                avg_loss , avg_accuracy, model_fbits, throughput = self.eval_run()
+                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {model_fbits=} {throughput=}")
                 if self.logging:
                     self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
-                    self.experiment.log_metric(name="Quant Max Range", value=model_quant_range, step=epoch)
+                    self.experiment.log_metric(name="Model Fbits", value=model_fbits, step=epoch)
                     self.experiment.log_metric(name="Throughput", value=throughput, step=epoch)
         # finishing up
         checkpoint = self._save_checkpoint()
