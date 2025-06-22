@@ -794,6 +794,30 @@ class:center,middle
 		}
 	});
 
+	// Touch input
+	let touchStartX = 0;
+	let touchEndX = 0;
+
+	document.addEventListener('touchstart', function (e) {
+		touchStartX = e.changedTouches[0].screenX;
+	});
+
+	document.addEventListener('touchend', function (e) {
+		touchEndX = e.changedTouches[0].screenX;
+		handleGesture();
+	});
+
+	function handleGesture() {
+		const delta = touchEndX - touchStartX;
+		if (Math.abs(delta) > 30) { // minimum swipe distance
+			if (delta < 0) {
+				direction = 'right'; // swipe left = next
+			} else {
+				direction = 'left';  // swipe right = previous
+			}
+		}
+	}
+
 	slideshow.on('afterShowSlide', function () {
 		const slide = document.querySelector('.remark-visible');
 		if (!slide) return;
