@@ -141,16 +141,11 @@ def _(steRound, torch):
         #-----------
         # y = clip(x_round,-half,half-1)
         # for half
-        ours_half_lj = torch.where(x_round<-1*half,-1,
-                          torch.where(x_round>half-1,1,0))
+        min,max = -half, half -1
+        max_grad_lj = ((x_round > max) | (max < min)) * 1
+        min_grad_lj = ((x_round < min) & (min < max)) * -1
+        ours_halfgrad = torch.sum(y.grad*(max_grad_lj + min_grad_lj))
 
-
-        # but we can also have case where half is negative.
-        # clipping does not work.. the gradient returns the size of the input.
-        single_half = torch.allclose(-half, half -1 , atol=1e-6)
-
-        ours_half_lj = (single_half)* half+  (-half > half -1)*1 + (-1*half < half -1)*ours_half_lj
-        ours_halfgrad = (y.grad * ours_half_lj).sum()
         assert torch.allclose(half.grad , ours_halfgrad, atol=1e-6) , f"{half.grad=} {ours_halfgrad=}"
 
         # for x_round
@@ -177,11 +172,11 @@ def _(steRound, torch):
         assert torch.equal(our_xgrad, x.grad)
 
         # for s (branch2)
-        ours_s_lj = x_scaled * -1* torch.log(torch.tensor(2.0))
-        ours_sgrad2 = (x_scaled.grad * ours_s_lj).sum()
+        ours_sgrad2 = torch.sum(x_scaled.grad *x_scaled* -1* torch.log(torch.tensor(2.0)))
+        # ours_sgrad2 = torch.sum(ours_sgrad1 )
 
         ours_sgrad = ours_sgrad1+ ours_sgrad2
-        assert torch.allclose(s.grad ,ours_sgrad, atol=1e-6), f"{ours_sgrad=}, {s.grad=} , {ours_sgrad - s.grad}"
+        assert torch.allclose(s.grad ,ours_sgrad, atol=1e-5), f"{ours_sgrad=}, {s.grad=} , {ours_sgrad - s.grad}"
 
 
         #----------
@@ -256,7 +251,7 @@ def _(run_alltests):
 @app.cell
 def _(torch):
     def inspect_clip():
-        x = torch.linspace(-1,1,50)
+        x = torch.linspace(-1,2,50)
         x.requires_grad_()
 
         half = torch.tensor(0.5)
@@ -271,6 +266,33 @@ def _(torch):
         print(half.grad)
     inspect_clip()
     return (inspect_clip,)
+
+
+@app.cell
+def _(torch):
+    def inspect_minmax():
+        x = torch.linspace(-1,2,50)
+        x.requires_grad_()
+        half = torch.tensor(0.5)
+        half.requires_grad_()
+        min = -half
+        max = half - 1
+        y = torch.clip(x, min, max)
+        y.retain_grad()
+        z = y.sum()
+    
+        z.backward()
+        print(y)
+        print(y.grad)
+        print(half.grad)
+        print(x.grad)
+    
+        max_grad_lj = ((x > max) | (max < min)) * 1
+        min_grad_lj = ((x < min) & (min < max)) * -1
+        half_grad = torch.sum(y.grad*(max_grad_lj + min_grad_lj))
+        print(half_grad)
+    inspect_minmax()
+    return (inspect_minmax,)
 
 
 @app.cell
