@@ -354,7 +354,7 @@ class: split-slide
 
 .rc0[
 	<video height="660" width="590" controls>
-		<source src="./tosparse.mp4" type="video/mp4">
+		<source src="./scratchpad/presentation/mid-term/toSparse.mp4" type="video/mp4">
 	</video>
 ]
 
@@ -457,7 +457,7 @@ class Qconv(torch.nn.Module):
 class:center,top
 
 <video width="1200",height:"1080", controls>
-	<source src="./compressKernels.mp4" type="video/mp4">
+	<source src="./scratchpad/presentation/mid-term/compressKernels.mp4" type="video/mp4">
 </video>
 
 ---
@@ -542,7 +542,7 @@ class QlinearMLP(torch.nn.Module):
 class:center
 
 <video width="1200",height:"1080", controls>
-	<source src="./Matrix.mp4" type="video/mp4">
+	<source src="./scratchpad/presentation/mid-term/Matrix.mp4" type="video/mp4">
 </video>
 
 
@@ -599,7 +599,7 @@ class:split-slide
 .lc[
 # Total Compression
 <div style="text-align: center;">
-	<img src="./total_compression.png" width="400" height="400">
+	<img src="./scratchpad/presentation/mid-term/total_compression.png" width="400" height="400">
 </div>
 - Question: How do i calculate actual bit depth of a quantized fp32 (not ours which supports fractional bit depth)?
 ]
@@ -607,7 +607,7 @@ class:split-slide
 .rc0[
 #Throughput
 <div style="text-align: center;">
-	<img src="./improve_trainingtime.png" width="400" height="400">
+	<img src="./scratchpad/presentation/mid-term/improve_trainingtime.png" width="400" height="400">
 </div>
 - If training time improves then fwd(+bwd) pass improves.. which implies improvement in throughput
 ]
@@ -685,7 +685,7 @@ class: split-slide
 ]
 
 .rcb[
-<img src="unit_tests.png" height="500" width="500">
+<img src="./scratchpad/presentation/mid-term/unit_tests.png" height="500" width="500">
 - tests fail when bit depth is 0 ; scary!.
 ]
 
@@ -751,7 +751,7 @@ ours_halfgrad = (y.grad * ours_half_lj).sum()
 ---
 class: center, top
 ## Compressing Softmax Attention
-<img src="./learned_temp.png" height="500" width="800">
+<img src="./scratchpad/presentation/mid-term/learned_temp.png" height="500" width="800">
 
 
 
