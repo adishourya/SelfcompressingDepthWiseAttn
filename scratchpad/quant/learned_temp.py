@@ -40,13 +40,15 @@ def _(torch):
 def _(quantize_weight, torch):
     # Efficient implementation equivalent to the following:
 
-    def scaled_dot_product_attention_impl1(query, key, value,b=2,e=8, attn_mask=None,temp=0.2) -> torch.Tensor:
+    def scaled_dot_product_attention_impl1(query, key, value,b=2,e=8, attn_mask=None,other_head=0.2) -> torch.Tensor:
         # single head of attn (for now we will also assume b =1)
         # q,j,v would be of shape b,seq_len,head_size
 
         q = quantize_weight(query,b,e)
         k = quantize_weight(key,b,e)
         v = quantize_weight(value,b,e)
+        temp = torch.as_tensor(b/(b+other_head + 1e-4))
+        print(f"{temp=}")
 
 
 
@@ -55,43 +57,46 @@ def _(quantize_weight, torch):
         scale_factor = 1 / torch.sqrt(head_size)
 
         # b,s,h @ b,h,s -> b, s^2 [quadratic in seq len]
-        score = q @ k.transpose(-2, -1) * scale_factor
+        score = q @ k.transpose(-2, -1) * scale_factor * temp
         attn_weight = torch.softmax(score, dim=-1)
-        out = attn_weight @ (v*temp)
+        out = attn_weight @ (v)
         # out = attn_weight @ v
-        print(torch.var(out))
+        print("out_var",torch.var(out))
         return out , score
     return (scaled_dot_product_attention_impl1,)
 
 
 @app.cell(hide_code=True)
 def _(marimo):
-    temp_slider1 = marimo.ui.slider(start=0,stop=1,step=0.1)
-    bit_slider1 = marimo.ui.slider(start=0,stop=8,step=0.5)
-    exp_slider1 = marimo.ui.slider(start=-8,stop=-3,step=1)
-
-    temp_slider1,bit_slider1,exp_slider1
-    return bit_slider1, exp_slider1, temp_slider1
+    other_head = marimo.ui.slider(start=0,stop=10,step=1)
+    bit_slider = marimo.ui.slider(start=0,stop=8,step=0.5)
+    exp_slider = marimo.ui.slider(start=-8,stop=-3,step=1)
+    marimo.md(f"""
+    other_head:{other_head}
+    depth_bit:{bit_slider}
+    exp_bit:{exp_slider}
+    """)
+    return bit_slider, exp_slider, other_head
 
 
 @app.cell(hide_code=True)
 def _(
-    bit_slider1,
-    exp_slider1,
+    bit_slider,
+    exp_slider,
     k,
+    other_head,
     plt,
     q,
     scaled_dot_product_attention_impl1,
-    temp_slider1,
     v,
 ):
     sdp, sdp_score = scaled_dot_product_attention_impl1(
         q,k,v,
-        b = bit_slider1.value,
-        e = exp_slider1.value,
-        temp=temp_slider1.value)
+        b = bit_slider.value,
+        e = exp_slider.value,
+        other_head=other_head.value)
     sdp , sdp_score = sdp.squeeze(0) , sdp_score.squeeze(0) # squeeze out the batchdim
-    print(temp_slider1.value)
+
 
     fig,ax = plt.subplots(nrows=1,ncols=2)
     score_img = ax[0].imshow(sdp_score,cmap="Blues")

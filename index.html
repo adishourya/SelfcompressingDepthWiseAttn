@@ -6,7 +6,7 @@
 
 
 	<link href="https://fonts.googleapis.com/css?family=Victor+Mono:400,700,400italic&display=swap" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css?family=Lekton:400,700,400italic&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Geist+Mono:400,700,400italic&display=swap" rel="stylesheet">
 
 	<link href="https://fonts.googleapis.com/css?family=Nova+Mono:400,700,400italic&display=swap" rel="stylesheet">
 	<!-- this is very informal -->
@@ -56,7 +56,7 @@
 			bottom: 1em;         /* Adjust vertical position if needed */
 			right: auto;         /* Cancel default right alignment */
 			color: var(--text-color);         /* Optional: subtle color */
-			font-size: 0.9em;    /* Optional: scale */
+			font-size: 0.5em;    /* Optional: scale */
 		}
 
 		.slide-to-prev {
@@ -74,6 +74,38 @@
 		@keyframes slideNext {
 			from { transform: translateX(-100%); opacity: 0; }
 			to   { transform: translateX(0);     opacity: 1; }
+		}
+
+
+		.opacityshudder {
+			animation: opacityshudder 0.4s linear 0s 2;
+		}
+
+		@keyframes .opacityshudder {
+			0%   { opacity: 1; }
+			20%  { opacity: 0.4; }
+			40%  { opacity: 0.8; }
+			60%  { opacity: 0.2; }
+			80%  { opacity: 0.9; }
+			100% { opacity: 1; }
+		}
+
+		.huerotate {
+			animation: huerotate 6s infinite linear;
+		}
+
+		@keyframes huerotate {
+			0%   { filter: hue-rotate(0deg); }
+			100% { filter: hue-rotate(360deg); }
+		}
+
+		.breathe {
+			animation: breathe 2.5s cubic-bezier(0.618, 0, 0.382, 1) infinite alternate;
+		}
+
+		@keyframes breathe {
+		0%, 100% { opacity: 0.4; }
+		50%   { opacity: 1; }
 		}
 
 		.remark-slide-content {
@@ -149,7 +181,8 @@
 		background-color: var(--bg-color);
 		flex-direction: column;
 		padding: 0.5em;
-		width: 60%;
+		min-width: 50%;
+		max-width: 65%;
 		box-sizing: border-box;
 		align-items: left;
 	}
@@ -160,7 +193,7 @@
 		padding: 0.5em;
 		display: flex;
 		flex-direction: column;
-		width: 50%;
+		flex : 1;
 		box-sizing: border-box;
 		align-items: left;
 	}
@@ -171,7 +204,7 @@
 		padding: 0.5em;
 		display: flex;
 		flex-direction: column;
-		width: 50%;
+		flex : 1;
 		box-sizing: border-box;
 		align-items: left;
 	}
@@ -182,7 +215,7 @@
 		padding: 0.5em;
 		display: flex;
 		flex-direction: column;
-		width: 50%;
+		flex : 1;
 		box-sizing: border-box;
 		align-items: left;
 	}
@@ -194,7 +227,7 @@
 		padding: 0.5em;
 		display: flex;
 		flex-direction: column;
-		width: 50%;
+		flex : 1;
 		box-sizing: border-box;
 		align-items: left;
 	}
@@ -205,7 +238,7 @@
 		padding: 0.5em;
 		display: flex;
 		flex-direction: column;
-		width: 50%;
+		flex : 1;
 		box-sizing: border-box;
 		align-items: left;
 	}
@@ -217,7 +250,7 @@
 		padding: 0.5em;
 		display: flex;
 		flex-direction: column;
-		width: 40%;
+		flex: 1;
 		box-sizing: border-box;
 		align-items: left;
 	}
@@ -227,9 +260,10 @@
 		background-color: var(--code-bg-color);
 		color: var(--code-text-color);
 		border-radius: 12px;
-		font-family: 'Lekton', monospace;
-		line-height: 1.2em;
-		font-size: 0.8em;
+		font-family: 'Geist Mono', monospace;
+		line-height: 1.4em;
+		font-size: 0.75em;
+		max-width: 95%;
 	}
 
 	video {
@@ -266,9 +300,11 @@ class: split-slide
 ---
 class: split-slide
 .lc[
-# .rtext[Problem]
+# .rtext[.huerotate[Problem]]
 ### Process High/Medium Resolution Images for classification or segmentation
+#### Application: Cameras on Edge Devices.
 ]
+
 
 .rcb[
 such that we:
@@ -309,7 +345,7 @@ class: split-slide
 # Quantization Function
 - Our scaling factor will be given by some exponent bit e.
 ```py
-def quantize_weight(x,b=2,e=-8):
+def quantize_weight(x,b=3.5,e=-3.5):
 		x_scaled = x/torch.exp2(e)
 		half = torch.exp2(b-1)
 		x_clipped = torch.clip(x_scaled,-1*half,half-1)
@@ -340,21 +376,21 @@ class: split-slide
 .rcb[
 ```py
 class STERound(torch.autograd.Function):
-		"""
-		same gradient as parent node. 
-		Also called as pass through gradient.
-		or Straight Through Estimator.
-		"""
-		@staticmethod
-		def forward(ctx,x):
-				return torch.round(x)
+	"""
+	same gradient as parent node. 
+	Also called as pass through gradient.
+	or Straight Through Estimator.
+	"""
+	@staticmethod
+	def forward(ctx,x):
+		return torch.round(x)
 
-		@staticmethod
-		def backward(ctx,upstream):
-				"""
-				local jacobian is 1.
-				"""
-				return upstream
+	@staticmethod
+	def backward(ctx,upstream):
+		"""
+		local jacobian is 1.
+		"""
+		return upstream
 
 ```
 ]
@@ -372,7 +408,7 @@ class: split-slide
 	- Bit depth increases: counters effect of clipping.
 	- Abs(Exp) bit increases: counters effect of rounding. 
 - if a weight or a group of weight reach a bit depth of 0.
- - The tensors are pruned for next iteration.
+ - The tensors are pruned for next time step.
 ]
 
 .rc0[
@@ -386,7 +422,7 @@ class: split-slide
 class:split-slide
 .lc[
 # Training Objective
-- we will penalize our model by the current size of the size of the model.
+- we will penalize our model by the current size of the model.
 - the current size is given by the sum of the layer size of the targeted "quantized" modules.
 - This also acts as a regularization term. (like the l1 loss which gets penalized by the sum of model's `abs(weights)`)
 
@@ -395,40 +431,50 @@ class:split-slide
 .rcb[
 ```py
 with torch.autocast(device_type="cuda",
-				dtype=self.amp_dtype):
+			dtype=self.amp_dtype):
 
-		out = self.model(batch_img)
-		# end of fwd pass
-		# current size of model / init size of model
-		bit_decay = self._qlayersize() / self.qtot_init
-		# add penalty term
-		loss = cross_entropy(out,batch_label)
-			+ self.gamma * bit_decay
+	out = self.model(batch_img)
+	# end of fwd pass
+	# current size of model / init size of model
+	bit_decay = self._qlayersize()
+		/ self.qtot_init
+	# add penalty term
+	loss = cross_entropy(out,batch_label)
+		+ self.gamma * bit_decay
 ```
 ]
 
 
 ---
-class:center,top
+class:split-slide
+.lc[
+# Compression Heuristics Needed
 > In my project plan i proposed a model with convolution in skip connections to aid linear attention improve its local inductive bias (which also had some full softmax attention at the start of the layer)
 
-# Compression Heuristics Needed
-
-.left[
 1. Convolution Heuristics (We get for free from the article, authors did not release code)
 2. nn.Linear (Done)
-3. Full Sotmax Attention (Decided on Heuristics, not implemented yet)
+3. Full Softmax Attention (Decided on Heuristics, not implemented yet)
 4. Linear Attention (Not decided on Heuristics)
 ]
 
-.left[
-.gtext[Experiments Done:]
-1. Pure Convolution Model (No MLP Head to arrive at logits)
-2. Convolution + MLP Head 
+.rc0[
 
-.rtext[Experiments to Do]:
-1. Conv + Full Softmax Attn + Linear Attn
+<div class="mermaid">
+graph TD
+I[Img] --> A[Embed] --> B(•)
+	B --> C[Softmax Attn]
+	C --> D[Lin Attn* x]
+	D --> L(•)
+	B -- skip connection --> E[QConv]
+	E --> L
+	L -- repeat n times --> Z[Logits]
+</div>
+##### Proposed Model Architecture
+.breathe[.rtext[we will make few changes]]
+
+*Linear x times so that profiling time for Qconv is similar to Full Softmax + linear Attn*
 ]
+
 
 ---
 class: split-slide
@@ -452,7 +498,7 @@ size_layer = prods* torch.where(self.b>0,1,0)
 class Qconv(torch.nn.Module):
 	"""
 	weight tying exp_bits and depth_bits
-	note number  of output  channels  is number of filters launched
+	1 per out_channel
 	"""
 	def  __init__ (self,...):
 		...
@@ -464,8 +510,9 @@ class Qconv(torch.nn.Module):
 		...
 
 	def size_layer(self):
-		prods = torch.as_tensor(self.weight.shape[1:])
-		# height * width * sum of depths of filters
+		prods = torch.as_tensor(
+			self.weight.shape[1:])
+		# height * width * sum of depths
 		-> size = torch.prod(prods) *
 			torch.sum(torch.relu(self.depth_bit))
 		return size
@@ -575,7 +622,9 @@ class: split-slide
 .lc[
 # nn.Linear Heuristics
 - [Conv+Linear Experiment](https://www.comet.com/adishourya/convolution-compressing/23b3cc857e2243e4a006ca513c5c5d92?compareXAxis=step&experiment-tab=panels&prevPath=%2Fadishourya%2Fconvolution-compressing%2Fview%2Fnew%2Fpanels&showOutliers=true&smoothing=0&xAxis=step)
-- we pruned 223/1600 ~(14%) without any accuracy degradation. 
+- we pruned 223/1600 ~(14%) features from latent space. 
+- we pruned (96-54)/96 ~ (41%) of the convolution kernels
+- all without any accuracy degradation.
 ]
 
 
@@ -601,8 +650,8 @@ class QconvModel(torch.nn.Module):
 		...
 		# then linear layers
 		flat = torch.flatten(pool2, 1)
-		l1 = torch.nn.functional.gelu(self.L1(flat))
-		l2 = torch.nn.functional.gelu(self.L2(l1))
+		l1 = F.gelu(self.L1(flat))
+		l2 = F.gelu(self.L2(l1))
 		logits = l2
 		return logits
 ```
@@ -623,7 +672,7 @@ class:split-slide
 .lc[
 # Total Compression
 <div style="text-align: center;">
-	<img src="./scratchpad/presentation/mid-term/total_compression.png" width="400" height="400">
+	<img src="./scratchpad/presentation/mid-term/total_compression.png" width="400" >
 </div>
 - Question: How do i calculate actual bit depth of a quantized fp32 (not ours which supports fractional bit depth)?
 ]
@@ -631,9 +680,10 @@ class:split-slide
 .rc0[
 #Throughput
 <div style="text-align: center;">
-	<img src="./scratchpad/presentation/mid-term/improve_trainingtime.png" width="400" height="400">
+	<img src="./scratchpad/presentation/mid-term/improve_trainingtime.png" width="400" >
 </div>
 - If training time improves then fwd(+bwd) pass improves.. which implies improvement in throughput
+- will we gain any improvement in latency by pruning nn.Linear ?
 ]
 
 
@@ -703,14 +753,15 @@ class: split-slide
 .lc[
 # Writing Backward Pass for our Quantization function
 - My Backward Pass does not pass for all unit tests. (passes with atol=1e-6, default:1e-8)
-- Fails specially for low exp bit cases.
+- looks like we fail specially for low exp bit cases.
+	- but likely torch.allclose mask our mistakes at b = 0.
 - Needs to be fixed before writing bwd pass for flash attn.
 - [my bwd pass implementation](https://github.com/adishourya/SelfcompressingDepthWiseAttn/blob/d0008898402c54c199a63977d278b7390e65235b/scratchpad/quant/backward_unit_quant.py#L96)
 ]
 
 .rcb[
-<img src="./scratchpad/presentation/mid-term/unit_tests.png" height="500" width="500">
-- tests fail when bit depth is 0 ; scary!.
+<img src="./scratchpad/presentation/mid-term/unit_tests.png" width="500">
+- tests .rtext[.breathe[fail!]] when bit depth is 0 ; scary!.
 ]
 
 ---
@@ -721,7 +772,7 @@ class: split-slide
 y = {
 half-1, x > half-1
 -half, x < -half
-0, elsewhere
+x, elsewhere
 }
 ```
 ```py
@@ -751,19 +802,18 @@ def inspect_clip():
 	print(y)
 	z = y.sum()
 	z.backward()
-	print(y.grad)
 	print(half.grad)
 #------------------
 tensor([-0.5000, ..., -0.5000, -0.5000])
-y.grad -> tensor([1., 1., ...., 1.])
 half.grad -> tensor(37.) ????
 #------------------
 # my implementation for half.grad
 # y = clip(x_round,-half,half-1)
-ours_half_lj = torch.where(x_round<-1*half,-1,
-					torch.where(x_round>half-1,1,0))
+ours_half_lj = torch.where(x_round< -half,-1,
+					torch.where(x_round>half-1,1,
+											0))
 # cases where half is negative. (0<b<1)
-single_half = torch.allclose(-half,half -1,atol=1e-6)
+single_half = torch.allclose(-half,half -1)
 ours_half_lj = (single_half)* half
 			 + (-half > half -1)*1 
 			 + (-1*half < half -1)*ours_half_lj
@@ -777,12 +827,44 @@ class: split-slide
 .loc[
 ## Compressing Softmax Attention
 - tie quantization function to each head.
-- temperature term can be normalized bit depth across attention head. (guarentees not all attn heads will be pruned)
+- cannot just equate 1/t with bit depth of the head.
+- how do we normalize the attention score when we dont know the range of bit depth our model will take.
+- can 1/temp be normalized bit depth across attention head.
+```py
+def scaled_dot_product_attention_impl1(query, key, value,
+		b=2,e=8, other_head=0.2) -> torch.Tensor:
+		# single head of attn
+		# each head gets quantized independently
+		q,k,v = q(q) , q(k), q(v)
+		temp = torch.as_tensor(b/(b+other_head + eps))
+
+		scale_factor = 1 / torch.sqrt(head_size)
+		# b,s,h @ b,h,s -> b, s^2 [score quadratic in seq len]
+		score = q @ k.transpose(-2, -1) * scale_factor
+		attn_weight = torch.softmax(score, dim=-1)
+		out = attn_weight @ (v*temp)
+		return out , score
+```
 ]
 .rc1[
-<img src="./scratchpad/presentation/mid-term/learned_temp.png" height="500" width="600">
+<img src="./scratchpad/presentation/mid-term/yarn.png" width="500">
+
+-  
 ]
 
+---
+class: split-slide
+
+.lc[
+# Linear Attention
+- [ Linear attention with quadratic approximation ]( https://proceedings.neurips.cc/paper_files/paper/2024/file/971f1e59cd956cc094da4e2f78c6ea7c-Paper-Conference.pdf )
+- [Random Fourier Features as phi ?](https://gregorygundersen.com/blog/2019/12/23/random-fourier-features/)
+- no need for temp term.. we will just quantize q,k,v
+]
+
+.rcb[
+hi
+]
 
 
 
@@ -791,9 +873,6 @@ class: split-slide
 ---
 class:center,middle
 # End of slides
-
-
-
 
 <!-- slide stuff -->
 </textarea>
@@ -806,7 +885,8 @@ class:center,middle
 	var slideshow = remark.create({
 		navigation:{scroll:true,touch:true,click:false},
 		ratio:"16:9",
-		slideNumberFormat: 'Slide %current% of %total%',
+		slideNumberFormat: function (current, total) {
+			return "["+current+"/"+total+"]"; },
 		highlightLanguage: 'python',
 		highlightStyle:"sunburst",
 		highlightLines: true,
@@ -886,6 +966,63 @@ slideshow.on('hideSlide', function (slide) {
 })
 </script>
 
+
+<script>
+var slideElements;
+
+function getElementForSlide(slide) {
+	slideElements = slideElements || document.querySelectorAll('.remark-slide');
+	return slideElements[slide.getSlideIndex()];
+}
+
+slideshow.on('showSlide', function (slide) {
+	const slideEl = getElementForSlide(slide);
+
+	// video handling (optional)
+	Array.from(slideEl.querySelectorAll('video')).forEach(function (vid) {
+		vid.loop = true;
+		vid.currentTime = 0;
+		vid.play();
+	});
+
+	// mermaid re-init
+	const mermaidBlocks = slideEl.querySelectorAll('.mermaid');
+	mermaidBlocks.forEach(block => {
+		// prevent re-rendering already rendered diagrams
+		if (!block.classList.contains('rendered')) {
+			// render this block only
+			mermaid.init(undefined, block);
+			block.classList.add('rendered'); // mark as rendered
+		}
+	});
+});
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+	startOnLoad: false,
+	theme: 'dark',
+	themeVariables: {
+		fontFamily: 'Victor Mono',
+		fontSize: '0.6em',
+		primaryColor: '#000',
+		lineColor: '#000',
+		edgeLabelBackground: '#000000',
+		nodeBorder: '#000',
+		textColor: '#fff',
+	},
+	flowchart: {
+		curve: 'linear',
+		useMaxWidth: false,
+		htmlLabels: true,
+		nodeSpacing: 15,
+		rankSpacing: 15,
+		minLen: 1
+	}
+});
+</script>
 
 </body>
 </html>
