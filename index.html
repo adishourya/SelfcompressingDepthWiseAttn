@@ -853,21 +853,13 @@ def scaled_dot_product_attention_impl1(query, key, value,
 ]
 
 ---
-class: split-slide
+class: center
 
-.lc[
 # Linear Attention
 - [ Linear attention with quadratic approximation ]( https://proceedings.neurips.cc/paper_files/paper/2024/file/971f1e59cd956cc094da4e2f78c6ea7c-Paper-Conference.pdf )
 - [Random Fourier Features as phi ?](https://gregorygundersen.com/blog/2019/12/23/random-fourier-features/)
 - no need for temp term.. we will just quantize q,k,v
-]
-
-.rcb[
-hi
-]
-
-
-
+ϕ(x)=exp(−norm2(x)/2)⋅ReLU(cos(Rx+b))
 
 
 ---
