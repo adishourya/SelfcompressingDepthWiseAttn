@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.11.13"
+__generated_with = "0.11.21"
 app = marimo.App(width="medium")
 
 
@@ -16,15 +16,16 @@ def _():
 @app.cell
 def _(einops, plt, torchvision):
     sample_img = torchvision.io.decode_image("./feesh.png")
+    sample_img = einops.rearrange(sample_img,"c h w -> 1 c h w") # add batch dim
     print(sample_img.shape)
-    plt.imshow(einops.rearrange(sample_img, "c h w -> h w c"))
+    plt.imshow(einops.rearrange(sample_img, "1 c h w -> h w c"))
     return (sample_img,)
 
 
 @app.cell
 def _(torch):
     class ProjectionEmbedding(torch.nn.Module):
-        def __init__(self,img_channels :int =4 , out_channels = 4, patch_size =4):
+        def __init__(self,img_channels :int =4 , out_channels = 8, patch_size =4):
             super().__init__()
             self.projection = torch.nn.Conv2d(in_channels=img_channels,
                                              out_channels=out_channels,
@@ -42,7 +43,7 @@ def _(einops, pe, plt, sample_img):
     out_pe = pe(sample_img_fp)
     print(out_pe.shape)
     plt.figure(figsize=(15,8))
-    plt.imshow(einops.rearrange(out_pe.detach(),"c h w -> h (c w)"))
+    plt.imshow(einops.rearrange(out_pe.detach(),"1 c h w -> h (c w)"))
     plt.show()
     return out_pe, sample_img_fp
 
@@ -87,13 +88,13 @@ def _(nn, torch):
             out = out + (self.use_residual) * identity
             return out, expand , dw
 
-    mbconv = MBConv(in_channels=4, out_channels=4)
+    mbconv = MBConv(in_channels=8, out_channels=8)
     return MBConv, mbconv
 
 
 @app.cell
 def _(einops, mbconv, out_pe, plt):
-    out_mbconv, out_expand, out_dw = mbconv(einops.rearrange(out_pe, "p h w -> 1 p h w"))
+    out_mbconv, out_expand, out_dw = mbconv(out_pe)
 
     print(f"{out_expand.shape=}")
     print(f"{out_dw.shape=}")
@@ -114,7 +115,7 @@ def _(einops, mbconv, out_pe, plt):
 @app.cell
 def _(einops, torch):
     class SimpleLinearAttention2D(torch.nn.Module):
-        def __init__(self, in_channels, heads=4, dim_per_head=32):
+        def __init__(self, in_channels, heads=8, dim_per_head=32):
             super().__init__()
             self.heads = heads
             self.dim = dim_per_head
@@ -170,7 +171,7 @@ def _(einops, torch):
             # 9. Final projection back to in_channels
             out = self.out_proj(out)  # (B, C, H, W)
             return out
-    sa = SimpleLinearAttention2D(in_channels=4)
+    sa = SimpleLinearAttention2D(in_channels=8)
     return SimpleLinearAttention2D, sa
 
 

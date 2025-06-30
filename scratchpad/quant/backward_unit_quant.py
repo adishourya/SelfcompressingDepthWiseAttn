@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.11.13"
+__generated_with = "0.11.21"
 app = marimo.App(width="medium")
 
 
@@ -176,7 +176,7 @@ def _(steRound, torch):
         # ours_sgrad2 = torch.sum(ours_sgrad1 )
 
         ours_sgrad = ours_sgrad1+ ours_sgrad2
-        assert torch.allclose(s.grad ,ours_sgrad, atol=1e-5), f"{ours_sgrad=}, {s.grad=} , {ours_sgrad - s.grad}"
+        assert torch.allclose(s.grad ,ours_sgrad, atol=1e-6), f"{ours_sgrad=}, {s.grad=} , {ours_sgrad - s.grad}"
 
 
         #----------
@@ -280,13 +280,13 @@ def _(torch):
         y = torch.clip(x, min, max)
         y.retain_grad()
         z = y.sum()
-    
+
         z.backward()
         print(y)
         print(y.grad)
         print(half.grad)
         print(x.grad)
-    
+
         max_grad_lj = ((x > max) | (max < min)) * 1
         min_grad_lj = ((x < min) & (min < max)) * -1
         half_grad = torch.sum(y.grad*(max_grad_lj + min_grad_lj))

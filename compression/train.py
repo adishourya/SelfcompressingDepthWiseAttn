@@ -15,11 +15,12 @@ train_loader,eval_loader,_ = get_dataloader(**data_config)
 
 from qmodules.Models.ConvModel import QconvModel
 from qmodules.Models.PureConvModel import QPureconvModel
+from qmodules.Models.eagerDWLin import EagerDWLin 
 from QTrainer import QTrainer
 
 train_config = dict(
     # model = QPureconvModel, 
-    model = QconvModel, 
+    model = EagerDWLin, 
     train_loader = train_loader,
     eval_loader = eval_loader,
     dtype = torch.float32,      # overflows if natively trained at fp16
@@ -27,15 +28,15 @@ train_config = dict(
     compression_gamma = 0.1, # layersize coefficient
     pbar_track_freq=50, # Every xth batch updates the progress bar
     eval_track_freq= 5, # Every xth epoch does an Eval Run 
-    logging=True, # comet ml tracking 
+    logging=False, # comet ml tracking 
     comet_username="adishourya",
-    tag="pure_conv",
+    tag="eager_dwlin",
     project_name="convolution_compressing"
 )
 
 
 if __name__ == "__main__":
     qtrainer = QTrainer(**train_config)
-    # qtrainer.train(1)
+    qtrainer.train(1)
     # qtrainer.train(300)
-    qtrainer.train(1000)
+    # qtrainer.train(100)

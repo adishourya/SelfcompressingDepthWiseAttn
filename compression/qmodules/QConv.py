@@ -10,18 +10,42 @@ class Qconv(torch.nn.Module):
     we will try to not just compress  but take out entire filter kernels...
     these asserts them to be pytorch tensors
     """
-    def  __init__ (self,in_channels,out_channels,kernel_size=3,b=2.0,e=-8.0,padding=1):
+    def  __init__ (self,in_channels,
+                   out_channels,
+                   kernel_size=3,
+                   b=2.0,e=-8.0,
+                   bias = True,
+                   padding=0,
+                   stride=1,
+                   groups=1,
+                   dillation = 1,
+                   padding_mode='zeros'):
         super().__init__()
+        # doing this makes fake tensor
         in_channels = torch.as_tensor(in_channels)
         out_channels = torch.as_tensor(out_channels)
         kernel_size = torch.as_tensor(kernel_size)
+
+        # in_channels = torch.tensor(in_channels)
+        # out_channels = torch.tensor(out_channels)
+        # kernel_size = torch.tensor(kernel_size)
+
+        if bias:
+            self.bias = torch.nn.Parameter(torch.zeros(out_channels))
+        else:
+            self.bias = None
         self.padding = padding
+        self.stride = stride
+        self.groups = groups
+        self.dilation = dillation
+        self.padding_mode = padding_mode
+
         b = torch.as_tensor(b)
         e= torch.as_tensor(e)
 
         # fan_in is just in_channels
         weight_scale = 1/ torch.sqrt(in_channels*out_channels*out_channels)
-        self.weight = torch.ones(out_channels,in_channels,kernel_size,kernel_size)
+        self.weight = torch.ones(out_channels,in_channels//groups,kernel_size,kernel_size)
         self.weight = self.weight.uniform_(-weight_scale,weight_scale)
 
         # 1 for each kernel (out_channel).. to perform safe broadcasting we fill the rest of them with 1
@@ -66,7 +90,13 @@ class Qconv(torch.nn.Module):
         W = self._quantized_weight()
         # assert self.weight.shape==W.shape
         # valid padding or should we do same.. paper does not say
-        return torch.nn.functional.conv2d(x,W,padding=self.padding)
+        return torch.nn.functional.conv2d(x,W,
+                                          bias=self.bias,
+                                          padding=self.padding,
+                                          stride=self.stride,
+                                          groups=self.groups,
+                                          dilation=self.dilation
+                                          )
 
 if __name__ == '__main__':
     m = Qconv(3,8)
