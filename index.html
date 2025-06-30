@@ -321,8 +321,7 @@ such that we:
 class: split-slide
 .lc[
 # Quantization Function
-- Differntiable bit depth (b) and exp bit (e)
-- we will use this quantization function to quantize all the big matrices of our network.
+- Differntiable bit depth (b) and exp bit (e) inside the quantization function.
 - This `q()` looks very similar to any other Q8A. For an example
 
 ```py
@@ -371,6 +370,7 @@ class: split-slide
 - the derivative of a rounding function is either 0 or not-defined.
 - Since `b` and `e` are inside the rounding function we need STE Rounding.
 - With STE estimator we can now perform quantization aware training.
+- There exists smaller level sets of bit depth for every precision given tolerance as a function of precision.
 ]
 
 .rcb[
@@ -683,7 +683,6 @@ class:split-slide
 	<img src="./scratchpad/presentation/mid-term/improve_trainingtime.png" width="400" >
 </div>
 - If training time improves then fwd(+bwd) pass improves.. which implies improvement in throughput
-- will we gain any improvement in latency by pruning nn.Linear ?
 ]
 
 
@@ -696,7 +695,6 @@ class:center,top
 	- We got 0.2% expansion in 1000 epochs (intialized with `~57,000` parameters) on *pure convolutional layer*.
 
 - Article does not say the intialized size of the model nor how it calculates "number of bits" are they just doing 2^2(ceil(b)-1) ?
-	- if so then my linear decrease in the sum of bit depth * (constant) will also look exp decreasing as article.
 
 - .rtext[Total Throughput]
 	- no increase in throughput in either of the models.
@@ -769,21 +767,24 @@ class: split-slide
 .lc[
 # Writing Bwd Pass
 ```py
-y = {
+y(x) = {
 half-1, x > half-1
 -half, x < -half
 x, elsewhere
 }
 ```
 ```py
+# This works great for normal cases but fails for special cases.
 dy/dhalf = {
 1, x > half -1
 -1, x< -half
 0, elsewhere
+# but there are special cases 
+# for 0<b<1 say b = 3/4 , exp2(b-1)-1 = 1/16 -1 = -15/16 and so -half = 15/16 . i.e min>max
+# for b = 0 , half = -half = 0.5
 }
 ```
-- This works great for normal cases but fails for special cases.
-- `-half> half -1` for 0<b<1 and clipped at a single point b=0 [torch_implementation of bwd pass for clip](https://github.com/pytorch/pytorch/blob/53fe804322640653d2dddaed394838b868ce9a26/torch/autograd/_functions/pointwise.py#L95)
+- [torch_implementation of bwd pass for clip](https://github.com/pytorch/pytorch/blob/53fe804322640653d2dddaed394838b868ce9a26/torch/autograd/_functions/pointwise.py#L95)
 - [torch.clamp kills gradient at the border from contributor](https://github.com/pytorch/pytorch/issues/7002#issuecomment-384757890)
 
 ]
@@ -856,12 +857,30 @@ def scaled_dot_product_attention_impl1(query, key, value,
 class: center
 
 # Linear Attention
-- [ Linear attention with quadratic approximation ]( https://proceedings.neurips.cc/paper_files/paper/2024/file/971f1e59cd956cc094da4e2f78c6ea7c-Paper-Conference.pdf )
+- [ Linear attention with quadratic approximation (equation 8) ]( https://proceedings.neurips.cc/paper_files/paper/2024/file/971f1e59cd956cc094da4e2f78c6ea7c-Paper-Conference.pdf )
 - [Random Fourier Features as phi ?](https://gregorygundersen.com/blog/2019/12/23/random-fourier-features/)
 - no need for temp term.. we will just quantize q,k,v
 ϕ(x)=exp(−norm2(x)/2)⋅ReLU(cos(Rx+b))
 
 
+---
+class:center,top
+### More Questions
+.left[
+- will we only notice imprvement in throughput if we dont compile our model ? (torch eager mode)
+
+- Do i gain any efficiency with my technique for pruning nn.Linear ?
+	- warps scheduled will be the same even if i prune many dual basis
+
+- Inefficiency in the architecture proposed ?
+	- no longer have clean residual connections 
+	- if #pruned convolutional kernels > #pruned linear + softmax
+		- then 1 branch might finish earlier than the other
+
+- How do people calculate saliency with flash attention?
+	- attention score does not materialize in the fwd pass.
+	- Do we need separate MHA for test time.
+]
 ---
 class:center,middle
 # End of slides
@@ -1018,4 +1037,3 @@ mermaid.initialize({
 
 </body>
 </html>
-
