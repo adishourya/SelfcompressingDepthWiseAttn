@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.11.21"
+__generated_with = "0.11.13"
 app = marimo.App(width="medium")
 
 
@@ -25,7 +25,7 @@ def _(einops, plt, torchvision):
 @app.cell
 def _(torch):
     class ProjectionEmbedding(torch.nn.Module):
-        def __init__(self,img_channels :int =4 , out_channels = 8, patch_size =4):
+        def __init__(self,img_channels :int =4 , out_channels = 4, patch_size =4):
             super().__init__()
             self.projection = torch.nn.Conv2d(in_channels=img_channels,
                                              out_channels=out_channels,
@@ -51,7 +51,7 @@ def _(einops, pe, plt, sample_img):
 @app.cell
 def _(nn, torch):
     class MBConv(torch.nn.Module):
-        def __init__(self, in_channels, out_channels, expand_ratio=6, kernel_size=3, stride=1):
+        def __init__(self, in_channels, out_channels, expand_ratio=2, kernel_size=3, stride=1):
             super().__init__()
 
             mid_channels = in_channels * expand_ratio
@@ -88,7 +88,7 @@ def _(nn, torch):
             out = out + (self.use_residual) * identity
             return out, expand , dw
 
-    mbconv = MBConv(in_channels=8, out_channels=8)
+    mbconv = MBConv(in_channels=4, out_channels=4)
     return MBConv, mbconv
 
 
@@ -101,13 +101,13 @@ def _(einops, mbconv, out_pe, plt):
     print(f"{out_mbconv.shape=}")
 
     plt.figure(figsize=(15,8))
-    plt.imshow(einops.rearrange(out_expand.detach() , "1 p h w -> h (p w)"))
+    plt.imshow(einops.rearrange(out_expand.detach() , "1 p h w -> h (p w)"),cmap="Blues")
     plt.show()
     plt.figure(figsize=(15,8))
-    plt.imshow(einops.rearrange(out_dw.detach() , "1 p h w -> h (p w)"))
+    plt.imshow(einops.rearrange(out_dw.detach() , "1 p h w -> h (p w)"),cmap="Reds")
     plt.show()
     plt.figure(figsize=(15,8))
-    plt.imshow(einops.rearrange(out_mbconv.detach() , "1 p h w -> h (p w)"))
+    plt.imshow(einops.rearrange(out_mbconv.detach() , "1 p h w -> h (p w)"),cmap="grey")
     plt.show()
     return out_dw, out_expand, out_mbconv
 
@@ -171,7 +171,7 @@ def _(einops, torch):
             # 9. Final projection back to in_channels
             out = self.out_proj(out)  # (B, C, H, W)
             return out
-    sa = SimpleLinearAttention2D(in_channels=8)
+    sa = SimpleLinearAttention2D(in_channels=4)
     return SimpleLinearAttention2D, sa
 
 

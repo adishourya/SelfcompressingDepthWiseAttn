@@ -881,6 +881,34 @@ class:center,top
 	- attention score does not materialize in the fwd pass.
 	- Do we need separate MHA for test time.
 ]
+
+---
+class:center,top
+### Recap
+.left[
+- will we only notice imprvement in throughput if we dont compile our model ? (torch eager mode)
+> There are ways to compile the graph more than once during training.
+
+- Do i gain any efficiency with my technique for pruning nn.Linear ?
+	- warps scheduled will be the same even if i prune many dual basis
+> we do not expect improvement in throughput with mlp layers. Randomized sparsity and mlps are already pretty quick 
+]
+
+---
+class:center,top
+### Recap
+.left[
+- Inefficiency in the architecture proposed ?
+	- no longer have clean residual connections 
+	- if #pruned convolutional kernels > #pruned linear + softmax
+		- then 1 branch might finish earlier than the other
+> keep depthwise convolution in Sequential Order
+
+- How do people calculate saliency with flash attention?
+	- attention score does not materialize in the fwd pass.
+	- Do we need separate MHA for test time.
+> we need a separate architecture at inference time.
+]
 ---
 class:center,middle
 # End of slides
