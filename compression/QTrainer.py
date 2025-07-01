@@ -23,6 +23,7 @@ class QTrainer:
                  model,
                  train_loader,
                  eval_loader,
+                 to_compile=True,
                  dtype=torch.float32,
                  amp_dtype =torch.float32,
                  compression_gamma = 0.1,
@@ -36,6 +37,7 @@ class QTrainer:
         self.model = model()
         self.train_loader =train_loader
         self.eval_loader = eval_loader
+        self.to_compile = to_compile
         self.pbar_track_freq = pbar_track_freq
         self.eval_track_freq = eval_track_freq
 
@@ -66,7 +68,9 @@ class QTrainer:
         self.scaler = torch.amp.GradScaler()
         # no need to do to dtype
         self.model = self.model.to(self.dtype)
-        self.model = torch.compile(self.model)
+        if self.to_compile:
+            self.model = torch.compile(self.model)
+
         # dont try it on cpu!
         self.model.to("cuda")
 

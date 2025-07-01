@@ -23,6 +23,7 @@ train_config = dict(
     model = EagerDWLin, 
     train_loader = train_loader,
     eval_loader = eval_loader,
+    to_compile = False,
     dtype = torch.float32,      # overflows if natively trained at fp16
     amp_dtype = torch.bfloat16, # "simulate" automatic mixed precision type 
     compression_gamma = 0.1, # layersize coefficient
