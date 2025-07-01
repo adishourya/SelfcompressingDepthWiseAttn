@@ -21,7 +21,7 @@ class TransformerBlock(torch.nn.Module):
 
 
 class EagerDWLin(torch.nn.Module):
-    def __init__(self, projection_out=16,num_heads=16, head_dim=32,repeat_transformer=4):
+    def __init__(self, projection_out=64,num_heads=16, head_dim=32,repeat_transformer=4):
         super().__init__()
         self.pe_out = projection_out
         self.num_heads = num_heads
@@ -32,7 +32,7 @@ class EagerDWLin(torch.nn.Module):
 
 
         self.mlp_block = torch.nn.Sequential(
-                QlinearMLP(self.pe_out * 15 * 15,256),
+                QlinearMLP(self.pe_out * 15 * 15,256),s
                 QlinearMLP(256,64),
                 QlinearMLP(64,10)
                 )

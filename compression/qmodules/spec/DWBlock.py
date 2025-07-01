@@ -9,7 +9,7 @@ class DWBlock(torch.nn.Module):
 
         # in_channels -> in_channels * expand ratio
         self.expand = torch.nn.Sequential(
-            Qconv(in_channels, mid_channels, kernel_size=1, bias=False, padding=0),
+            torch.nn.Conv2d(in_channels, mid_channels, kernel_size=1, bias=False, padding=0),
             torch.nn.BatchNorm2d(mid_channels),
             torch.nn.ReLU6(inplace=True),
         )
@@ -24,7 +24,7 @@ class DWBlock(torch.nn.Module):
 
         # 3. Projection (1x1 Conv)
         self.project = torch.nn.Sequential(
-            Qconv(mid_channels, out_channels, kernel_size=1, bias=False,padding=0),
+            torch.nn.Conv2d(mid_channels, out_channels, kernel_size=1, bias=False,padding=0),
             torch.nn.BatchNorm2d(out_channels),
         )
 

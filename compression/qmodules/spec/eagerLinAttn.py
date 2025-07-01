@@ -11,8 +11,8 @@ class SimpleLinearAttention2D(torch.nn.Module):
         self.eps = 1e-6
 
         # 1 output channel each for q,k,v
-        self.qkv_proj = Qconv(in_channels, 3 * self.total_dim, kernel_size=1)
-        self.out_proj = Qconv(self.total_dim, in_channels, kernel_size=1)
+        self.qkv_proj = torch.nn.Conv2d(in_channels, 3 * self.total_dim, kernel_size=1)
+        self.out_proj = torch.nn.Conv2d(self.total_dim, in_channels, kernel_size=1)
 
 
         # self.kernel = lambda x : torch.nn.functional.elu(x) + 1

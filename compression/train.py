@@ -23,13 +23,13 @@ train_config = dict(
     model = EagerDWLin, 
     train_loader = train_loader,
     eval_loader = eval_loader,
-    to_compile = False,
+    to_compile = True,
     dtype = torch.float32,      # overflows if natively trained at fp16
     amp_dtype = torch.bfloat16, # "simulate" automatic mixed precision type 
     compression_gamma = 0.1, # layersize coefficient
     pbar_track_freq=50, # Every xth batch updates the progress bar
     eval_track_freq= 5, # Every xth epoch does an Eval Run 
-    logging=False, # comet ml tracking 
+    logging=True, # comet ml tracking 
     comet_username="adishourya",
     tag="eager_dwlin",
     project_name="convolution_compressing"
@@ -38,6 +38,6 @@ train_config = dict(
 
 if __name__ == "__main__":
     qtrainer = QTrainer(**train_config)
-    qtrainer.train(1)
-    # qtrainer.train(300)
+    # qtrainer.train(1)
+    qtrainer.train(1000)
     # qtrainer.train(100)
