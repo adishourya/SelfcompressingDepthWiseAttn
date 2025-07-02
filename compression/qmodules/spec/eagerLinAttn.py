@@ -18,8 +18,8 @@ class SimpleLinearAttention2D(torch.nn.Module):
         # self.kernel = lambda x : torch.nn.functional.elu(x) + 1
         # self.kernel = lambda x : 1 - x + x**2/2
         # self.kernel = torch.sin
-        # self.kernel = torch.nn.functional.relu6
-        self.kernel = lambda x : torch.exp(x - x.amax(dim=-1, keepdim=True))
+        self.kernel = torch.nn.functional.relu
+        # self.kernel = lambda x : torch.exp(x - x.amax(dim=-1, keepdim=True))
 
 
     def forward(self, x):

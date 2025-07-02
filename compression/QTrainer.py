@@ -98,6 +98,7 @@ class QTrainer:
         print(f"of which compression are :{self.tot_qparams=}")
         print(f"compression factor at init {self.gamma * self._qlayersize()}")
         print(f"Model Bits: {self.model_fbits=}")
+        print(f"Model Qconvs: {self._activekernelscount()=}")
 
         if self.logging:
             self.experiment.log_metric(name="Init Parameters", value=self.tot_init)
