@@ -15,9 +15,10 @@ class TransformerBlock(torch.nn.Module):
         self.attn = SimpleLinearAttention2D(in_channels=in_channels, heads=num_heads, dim_per_head=head_dim)
 
     def forward(self, x):
+        identity = x
         x = self.dwblock(x)
         x = self.attn(x)
-        return x
+        return identity + x
 
 
 class EagerDWLin(torch.nn.Module):

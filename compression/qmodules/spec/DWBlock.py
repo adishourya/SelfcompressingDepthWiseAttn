@@ -31,7 +31,7 @@ class DWBlock(torch.nn.Module):
             torch.nn.BatchNorm2d(out_channels),
         )
 
-        self.use_residual = (in_channels == out_channels and stride == 1)
+        #self.use_residual = (in_channels == out_channels and stride == 1)
 
     def forward(self, x):
         identity = x
@@ -39,6 +39,5 @@ class DWBlock(torch.nn.Module):
         upscaled = self.pixel_shuffle(expand)         # [B, mid_channels//4, 2H, 2W]
         dw = self.depthwise(upscaled)             # [B, mid_channels//4, 2H, 2W] or lower if stride > 1
         out = self.project(dw)               # [B, out_channels, ...]
-        out = out + (self.use_residual)*identity
-
+        #out = out + (self.use_residual)*identity
         return out
