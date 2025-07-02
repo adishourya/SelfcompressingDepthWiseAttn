@@ -1,33 +1,32 @@
 import torch
+from torch.nn.functional import pad
 from qmodules.QConv import Qconv
 
 class DWBlock(torch.nn.Module):
-    def __init__(self, in_channels, out_channels, expand_ratio=4, kernel_size=5, stride=1, pixel_shuffle = 2):
+    def __init__(self, in_channels, out_channels, expand_ratio=4, kernel_size=5, stride=1, upscaling_factor = 2, upscaled_channels=8):
         super().__init__()
 
         # Compute mid channels and ensure compatibility with PixelShuffle(2)
-        mid_channels = in_channels * expand_ratio
-        assert mid_channels % (pixel_shuffle * pixel_shuffle) == 0, "expanded_channel must be div by pixshuf^2"
+        expanded_channels = in_channels * expand_ratio
 
-        shuffled_channels = mid_channels // (pixel_shuffle * pixel_shuffle)   # because PixelShuffle(2) reduces channels by 4
 
         self.expand = torch.nn.Sequential(
-            Qconv(in_channels, mid_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
-            torch.nn.BatchNorm2d(mid_channels),
+            Qconv(in_channels, expanded_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
+            torch.nn.BatchNorm2d(expanded_channels),
             torch.nn.ReLU6(inplace=True),
         )
 
-        self.pixel_shuffle = torch.nn.PixelShuffle(upscale_factor=pixel_shuffle)
+        self.learned_upscaling = torch.nn.ConvTranspose2d(expanded_channels,upscaled_channels,kernel_size=kernel_size,padding=kernel_size//2, stride=upscaling_factor)
 
         self.depthwise = torch.nn.Sequential(
-            Qconv(shuffled_channels, shuffled_channels, kernel_size=kernel_size, stride=stride,
-                      padding=kernel_size // 2, groups=shuffled_channels, bias=False),
-            torch.nn.BatchNorm2d(shuffled_channels),
+            Qconv(upscaled_channels, upscaled_channels, kernel_size=kernel_size, stride=stride,
+                      padding=kernel_size // 2, groups=upscaled_channels, bias=False),
+            torch.nn.BatchNorm2d(upscaled_channels),
             torch.nn.ReLU6(inplace=True),
         )
 
         self.project = torch.nn.Sequential(
-            Qconv(shuffled_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2,stride=2, bias=False),
+            Qconv(upscaled_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2,stride=2, bias=False),
             torch.nn.BatchNorm2d(out_channels),
         )
 
@@ -36,7 +35,7 @@ class DWBlock(torch.nn.Module):
     def forward(self, x):
         identity = x
         expand = self.expand(x)                # [B, mid_channels, H, W]
-        upscaled = self.pixel_shuffle(expand)         # [B, mid_channels//4, 2H, 2W]
+        upscaled = self.learned_upscaling(expand)         # [B, mid_channels//4, 2H, 2W]
         dw = self.depthwise(upscaled)             # [B, mid_channels//4, 2H, 2W] or lower if stride > 1
         out = self.project(dw)               # [B, out_channels, ...]
         #out = out + (self.use_residual)*identity
