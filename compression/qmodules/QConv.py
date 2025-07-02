@@ -58,7 +58,7 @@ class Qconv(torch.nn.Module):
         self.depth_bit = torch.nn.Parameter(self.depth_bit)
         ...
 
-    def size_layer(self):
+    def size_layer_old(self):
         """
         given by equation 4 : I*H*W * sum(b(i,l)
         Where O , I , H and W are the output, input, height, and
@@ -70,10 +70,18 @@ class Qconv(torch.nn.Module):
         size = torch.prod(prods) *  torch.sum(torch.relu(self.depth_bit))
         return size
 
-    def _fakebits(self):
+    def size_layer(self):
+        """
+        New size layer ... this used to be calculation for fake bits
+        This is more agressive than old implementation
+        """
         return torch.sum(
             torch.exp2(torch.relu(torch.ceil(self.depth_bit))) * torch.prod(torch.as_tensor(self.weight.shape[1:]))
             ) 
+
+
+    def _fakebits(self):
+        return torch.sum(self.depth_bit)
 
     def _quantized_weight(self):
         b = torch.relu(self.depth_bit)
