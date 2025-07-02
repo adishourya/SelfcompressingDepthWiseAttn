@@ -18,7 +18,7 @@ class TransformerBlock(torch.nn.Module):
         identity = x
         x = self.dwblock(x)
         x = self.attn(x)
-        return identity + x
+        return torch.nn.BatchNorm2d(identity + x)
 
 
 class EagerDWLin(torch.nn.Module):

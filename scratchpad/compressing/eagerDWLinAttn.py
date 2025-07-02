@@ -56,99 +56,56 @@ def _(einops, pe, plt, sample_img):
 
 @app.cell
 def _(torch):
-    # class MBConv(torch.nn.Module):
-    #     def __init__(self, in_channels, out_channels, expand_ratio=2, kernel_size=5, stride=2):
-    #         super().__init__()
-
-    #         mid_channels = in_channels * expand_ratio
-
-
-    #         self.expand = torch.nn.Sequential(
-    #             torch.nn.Conv2d(in_channels, mid_channels, kernel_size=kernel_size, padding = kernel_size//2,stride=1, bias=False),
-    #             torch.nn.BatchNorm2d(mid_channels),
-    #             torch.nn.ReLU6(inplace=True),
-    #         ) if expand_ratio != 1 else nn.Identity()
-    #         # self.expand_upsample = torch.nn.Upsample(scale_factor=2, mode='bicubic', align_corners=False)
-    #         self.expand_shuffle = torch.nn.PixelShuffle(upscale_factor=2) # B , C * R , R , H , W -> B , C, H*R , W*R
-
-
-    #         self.depthwise = torch.nn.Sequential(
-    #             torch.nn.Conv2d(2, 2, kernel_size=kernel_size, stride=stride,
-    #                       padding=kernel_size // 2, groups=2, bias=False),
-    #             torch.nn.BatchNorm2d(2),
-    #             torch.nn.ReLU6(inplace=True),
-    #         )
-    #         self.pixel_shuffle = torch.nn.PixelShuffle(1)
-
-
-    #         self.project = torch.nn.Sequential(
-    #             torch.nn.Conv2d(2, out_channels, kernel_size=kernel_size,padding=kernel_size//2, bias=False),
-    #             torch.nn.BatchNorm2d(out_channels),
-    #         )
-    #         self.use_residual = (in_channels == out_channels)
-
-
-    #     def forward(self, x):
-    #         identity = x
-    #         expand = self.expand(x)
-    #         expand = self.expand_shuffle(expand)
-    #         dw = self.depthwise(expand)
-    #         # dw = self.pixel_shuffle(dw)
-    #         out =  self.project(dw)
-    #         out = out + identity*self.use_residual
-    #         return out, expand , dw
-
-    # mbconv = MBConv(in_channels=4, out_channels=4)
-
-
-    class MBConv(torch.nn.Module):
-        def __init__(self, in_channels, out_channels, expand_ratio=4, kernel_size=5, stride=1, pixel_shuffle = 2):
+    class DWBlock(torch.nn.Module):
+        def __init__(self, in_channels, out_channels, expand_ratio=4, kernel_size=3, stride=1, upscaling_factor = 2, upscaled_channels=4):
             super().__init__()
 
             # Compute mid channels and ensure compatibility with PixelShuffle(2)
-            mid_channels = in_channels * expand_ratio
-            assert mid_channels % (pixel_shuffle * pixel_shuffle) == 0, "expanded_channel must be div by pixshuf^2"
+            expanded_channels = in_channels * expand_ratio
+            shuffled_channels = expanded_channels/ (upscaling_factor * upscaling_factor)
 
-            shuffled_channels = mid_channels // (pixel_shuffle * pixel_shuffle)   # because PixelShuffle(2) reduces channels by 4
 
             self.expand = torch.nn.Sequential(
-                torch.nn.Conv2d(in_channels, mid_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
-                torch.nn.BatchNorm2d(mid_channels),
-                torch.nn.ReLU6(inplace=True),
+                torch.nn.Conv2d(in_channels, expanded_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
+                # torch.nn.BatchNorm2d(expanded_channels),
+                torch.nn.GELU(),
             )
 
-            self.pixel_shuffle = torch.nn.PixelShuffle(upscale_factor=pixel_shuffle)
+            # self.learned_upscaling = torch.nn.ConvTranspose2d(expanded_channels,upscaled_channels,kernel_size=kernel_size,padding=kernel_size//2, stride=upscaling_factor)
+
+            self.shuffle_upscaling = torch.nn.PixelShuffle(upscale_factor=upscaling_factor)
 
             self.depthwise = torch.nn.Sequential(
-                torch.nn.Conv2d(shuffled_channels, shuffled_channels, kernel_size=kernel_size, stride=stride,
-                          padding=kernel_size // 2, groups=shuffled_channels, bias=False),
-                torch.nn.BatchNorm2d(shuffled_channels),
-                torch.nn.ReLU6(inplace=True),
+                torch.nn.Conv2d(upscaled_channels, upscaled_channels, kernel_size=kernel_size, stride=stride,
+                          padding=kernel_size // 2, groups=upscaled_channels, bias=False),
+                # torch.nn.BatchNorm2d(upscaled_channels),
+                torch.nn.ELU(),
             )
 
             self.project = torch.nn.Sequential(
-                torch.nn.Conv2d(shuffled_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2,stride=2, bias=False),
+                torch.nn.Conv2d(upscaled_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2,stride=2, bias=False),
                 torch.nn.BatchNorm2d(out_channels),
             )
 
-            self.use_residual = (in_channels == out_channels and stride == 1)
+            #self.use_residual = (in_channels == out_channels and stride == 1)
 
         def forward(self, x):
             identity = x
+            expand = self.expand(x)
+            # upscaled = self.learned_upscaling(expand)
+            upscaled = self.shuffle_upscaling(expand)
+            dw = self.depthwise(upscaled)
+            out = self.project(dw)
+            #out = out + (self.use_residual)*identity
+            return out, expand, upscaled, dw
 
-            expand = self.expand(x)                # [B, mid_channels, H, W]
-            upscaled = self.pixel_shuffle(expand)         # [B, mid_channels//4, 2H, 2W]
-            dw = self.depthwise(upscaled)             # [B, mid_channels//4, 2H, 2W] or lower if stride > 1
-            out = self.project(dw)               # [B, out_channels, ...]
-
-            return out, expand, dw
-    mbconv = MBConv(in_channels=4, out_channels=4)
-    return MBConv, mbconv
+    dwconv = DWBlock(in_channels=4,out_channels=4)
+    return DWBlock, dwconv
 
 
 @app.cell
-def _(einops, mbconv, out_pe, plt):
-    out_mbconv, out_expand, out_dw = mbconv(out_pe)
+def _(dwconv, einops, out_pe, plt):
+    out_mbconv, out_expand, out_upscaled, out_dw = dwconv(out_pe)
 
     print(f"{out_expand.shape=}")
     print(f"{out_dw.shape=}")
@@ -157,13 +114,19 @@ def _(einops, mbconv, out_pe, plt):
     plt.figure(figsize=(15,16))
     plt.imshow(einops.rearrange(out_expand.detach() , "1 p h w -> h (p w)"),cmap="Oranges")
     plt.show()
+
+    plt.figure(figsize=(15,8))
+    plt.imshow(einops.rearrange(out_upscaled.detach() , "1 p h w -> h (p w)"),cmap="grey")
+    plt.show()
+
     plt.figure(figsize=(15,8))
     plt.imshow(einops.rearrange(out_dw.detach() , "1 p h w -> h (p w)"),cmap="grey")
     plt.show()
+
     plt.figure(figsize=(15,8))
     plt.imshow(einops.rearrange(out_mbconv.detach() , "1 p h w -> h (p w)"),cmap="grey")
     plt.show()
-    return out_dw, out_expand, out_mbconv
+    return out_dw, out_expand, out_mbconv, out_upscaled
 
 
 @app.cell
@@ -177,14 +140,15 @@ def _(einops, torch):
             self.eps = 1e-6
 
             # 1 output channel each for q,k,v
-            self.qkv_proj = torch.nn.Conv2d(in_channels, 3 * self.total_dim, kernel_size=1)
-            self.out_proj = torch.nn.Conv2d(self.total_dim, in_channels, kernel_size=1)
+            self.qkv_proj = torch.nn.Conv2d(in_channels, 3 * self.total_dim, kernel_size=1,padding=0)
+            self.out_proj = torch.nn.Conv2d(self.total_dim, in_channels, kernel_size=1,padding=0)
 
 
             # self.kernel = lambda x : torch.nn.functional.elu(x) + 1
             # self.kernel = lambda x : 1 - x + x**2/2
             # self.kernel = torch.sin
             self.kernel = torch.nn.functional.relu
+            # self.kernel = torch.nn.functional.gelu
             # self.kernel = lambda x : torch.exp(x - x.amax(dim=-1, keepdim=True))
 
 
