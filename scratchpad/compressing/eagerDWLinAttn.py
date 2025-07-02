@@ -14,9 +14,15 @@ def _():
 
 
 @app.cell
-def _(einops, plt, torchvision):
-    sample_img = torchvision.io.decode_image("./feesh.png")
-    sample_img = einops.rearrange(sample_img,"c h w -> 1 c h w") # add batch dim
+def _(einops, plt, torch, torchvision):
+    sample_img = torchvision.io.decode_image("./dolphin.jpg")
+    print(f"original size:{sample_img.shape=}")
+    # Add batch dimension before interpolate
+    sample_img = einops.rearrange(sample_img, "c h w -> 1 c h w")
+
+    sample_img = torch.nn.functional.interpolate(sample_img, size=(2160, 3180))
+
+    # sample_img = einops.rearrange(sample_img,"c h w -> 1 c h w") # add batch dim
     print(sample_img.shape)
     plt.imshow(einops.rearrange(sample_img, "1 c h w -> h w c"))
     return (sample_img,)
@@ -25,7 +31,7 @@ def _(einops, plt, torchvision):
 @app.cell
 def _(torch):
     class ProjectionEmbedding(torch.nn.Module):
-        def __init__(self,img_channels :int =4 , out_channels = 4, patch_size =4):
+        def __init__(self,img_channels :int =3 , out_channels = 4, patch_size =4):
             super().__init__()
             self.projection = torch.nn.Conv2d(in_channels=img_channels,
                                              out_channels=out_channels,
@@ -50,48 +56,92 @@ def _(einops, pe, plt, sample_img):
 
 @app.cell
 def _(torch):
+    # class MBConv(torch.nn.Module):
+    #     def __init__(self, in_channels, out_channels, expand_ratio=2, kernel_size=5, stride=2):
+    #         super().__init__()
+
+    #         mid_channels = in_channels * expand_ratio
+
+
+    #         self.expand = torch.nn.Sequential(
+    #             torch.nn.Conv2d(in_channels, mid_channels, kernel_size=kernel_size, padding = kernel_size//2,stride=1, bias=False),
+    #             torch.nn.BatchNorm2d(mid_channels),
+    #             torch.nn.ReLU6(inplace=True),
+    #         ) if expand_ratio != 1 else nn.Identity()
+    #         # self.expand_upsample = torch.nn.Upsample(scale_factor=2, mode='bicubic', align_corners=False)
+    #         self.expand_shuffle = torch.nn.PixelShuffle(upscale_factor=2) # B , C * R , R , H , W -> B , C, H*R , W*R
+
+
+    #         self.depthwise = torch.nn.Sequential(
+    #             torch.nn.Conv2d(2, 2, kernel_size=kernel_size, stride=stride,
+    #                       padding=kernel_size // 2, groups=2, bias=False),
+    #             torch.nn.BatchNorm2d(2),
+    #             torch.nn.ReLU6(inplace=True),
+    #         )
+    #         self.pixel_shuffle = torch.nn.PixelShuffle(1)
+
+
+    #         self.project = torch.nn.Sequential(
+    #             torch.nn.Conv2d(2, out_channels, kernel_size=kernel_size,padding=kernel_size//2, bias=False),
+    #             torch.nn.BatchNorm2d(out_channels),
+    #         )
+    #         self.use_residual = (in_channels == out_channels)
+
+
+    #     def forward(self, x):
+    #         identity = x
+    #         expand = self.expand(x)
+    #         expand = self.expand_shuffle(expand)
+    #         dw = self.depthwise(expand)
+    #         # dw = self.pixel_shuffle(dw)
+    #         out =  self.project(dw)
+    #         out = out + identity*self.use_residual
+    #         return out, expand , dw
+
+    # mbconv = MBConv(in_channels=4, out_channels=4)
+
+
     class MBConv(torch.nn.Module):
-        def __init__(self, in_channels, out_channels, expand_ratio=2, kernel_size=3, stride=1):
+        def __init__(self, in_channels, out_channels, expand_ratio=4, kernel_size=5, stride=1, pixel_shuffle = 2):
             super().__init__()
 
+            # Compute mid channels and ensure compatibility with PixelShuffle(2)
             mid_channels = in_channels * expand_ratio
+            assert mid_channels % (pixel_shuffle * pixel_shuffle) == 0, "expanded_channel must be div by pixshuf^2"
 
-            # in_channels -> in_channels * expand ratio
+            shuffled_channels = mid_channels // (pixel_shuffle * pixel_shuffle)   # because PixelShuffle(2) reduces channels by 4
+
             self.expand = torch.nn.Sequential(
-                torch.nn.Conv2d(in_channels, mid_channels, kernel_size=3, bias=False),
+                torch.nn.Conv2d(in_channels, mid_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
                 torch.nn.BatchNorm2d(mid_channels),
                 torch.nn.ReLU6(inplace=True),
             )
-        
-        
 
-            # 2. Depthwise convolution
+            self.pixel_shuffle = torch.nn.PixelShuffle(upscale_factor=pixel_shuffle)
+
             self.depthwise = torch.nn.Sequential(
-                torch.nn.Conv2d(mid_channels, mid_channels, kernel_size=kernel_size, stride=stride,
-                          padding=kernel_size // 2, groups=mid_channels, bias=False),
-                torch.nn.BatchNorm2d(mid_channels),
+                torch.nn.Conv2d(shuffled_channels, shuffled_channels, kernel_size=kernel_size, stride=stride,
+                          padding=kernel_size // 2, groups=shuffled_channels, bias=False),
+                torch.nn.BatchNorm2d(shuffled_channels),
                 torch.nn.ReLU6(inplace=True),
             )
 
-            # 3. Projection (1x1 Conv)
             self.project = torch.nn.Sequential(
-                torch.nn.Conv2d(mid_channels, out_channels, kernel_size=1, bias=False),
+                torch.nn.Conv2d(shuffled_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2,stride=2, bias=False),
                 torch.nn.BatchNorm2d(out_channels),
             )
 
-            # Residual connection if possible
             self.use_residual = (in_channels == out_channels and stride == 1)
 
         def forward(self, x):
             identity = x
-            expand = self.expand(x)
-            expand = torch.nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
 
-            dw = self.depthwise(expand)
-            out =  self.project(dw)
-            out = out + (self.use_residual) * identity
-            return out, expand , dw
+            expand = self.expand(x)                # [B, mid_channels, H, W]
+            upscaled = self.pixel_shuffle(expand)         # [B, mid_channels//4, 2H, 2W]
+            dw = self.depthwise(upscaled)             # [B, mid_channels//4, 2H, 2W] or lower if stride > 1
+            out = self.project(dw)               # [B, out_channels, ...]
 
+            return out, expand, dw
     mbconv = MBConv(in_channels=4, out_channels=4)
     return MBConv, mbconv
 
@@ -104,11 +154,11 @@ def _(einops, mbconv, out_pe, plt):
     print(f"{out_dw.shape=}")
     print(f"{out_mbconv.shape=}")
 
-    plt.figure(figsize=(15,8))
-    plt.imshow(einops.rearrange(out_expand.detach() , "1 p h w -> h (p w)"),cmap="Blues")
+    plt.figure(figsize=(15,16))
+    plt.imshow(einops.rearrange(out_expand.detach() , "1 p h w -> h (p w)"),cmap="Oranges")
     plt.show()
     plt.figure(figsize=(15,8))
-    plt.imshow(einops.rearrange(out_dw.detach() , "1 p h w -> h (p w)"),cmap="Reds")
+    plt.imshow(einops.rearrange(out_dw.detach() , "1 p h w -> h (p w)"),cmap="grey")
     plt.show()
     plt.figure(figsize=(15,8))
     plt.imshow(einops.rearrange(out_mbconv.detach() , "1 p h w -> h (p w)"),cmap="grey")
@@ -119,7 +169,7 @@ def _(einops, mbconv, out_pe, plt):
 @app.cell
 def _(einops, torch):
     class SimpleLinearAttention2D(torch.nn.Module):
-        def __init__(self, in_channels, heads=8, dim_per_head=32):
+        def __init__(self, in_channels, heads=8, dim_per_head=16):
             super().__init__()
             self.heads = heads
             self.dim = dim_per_head
@@ -134,8 +184,8 @@ def _(einops, torch):
             # self.kernel = lambda x : torch.nn.functional.elu(x) + 1
             # self.kernel = lambda x : 1 - x + x**2/2
             # self.kernel = torch.sin
-            # self.kernel = torch.nn.functional.relu6
-            self.kernel = lambda x : torch.exp(x - x.amax(dim=-1, keepdim=True))
+            self.kernel = torch.nn.functional.relu
+            # self.kernel = lambda x : torch.exp(x - x.amax(dim=-1, keepdim=True))
 
 
         def forward(self, x):
@@ -161,7 +211,7 @@ def _(einops, torch):
 
             # 6. Attention output: (B, heads, dim+1, N)
             out = torch.matmul(kv, q)  # (B, heads, dim+1, N)
-            print(out.shape)
+
 
             # 7. Normalize using last row (normalizer trick)
             norm = out[:, :, -1:, :] + self.eps
@@ -185,7 +235,7 @@ def _(einops, out_mbconv, plt, sa):
     print(f"{sa_out.shape=}")
 
     plt.figure(figsize=(15,8))
-    plt.imshow(einops.rearrange(sa_out.detach(),"1 c h w -> h (c w)"))
+    plt.imshow(einops.rearrange(sa_out.detach(),"1 c h w -> h (c w)"),cmap="grey")
     return (sa_out,)
 
 
