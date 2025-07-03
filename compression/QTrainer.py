@@ -6,7 +6,7 @@ import datetime
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 os.makedirs("assets", exist_ok=True)
 
-from comet_ml import start
+from comet_ml import start , ExperimentConfig
 from comet_ml.integration.pytorch import log_model,watch
 
 
@@ -109,10 +109,17 @@ class QTrainer:
 
 
     def _setup_logging(self):
+        experiment_config = ExperimentConfig(
+            auto_histogram_weight_logging=True,
+            auto_histogram_gradient_logging=False,
+            auto_histogram_activation_logging=False,
+            auto_histogram_epoch_rate = 2, # for heavy experiments keep it 2. default 1
+        )
         self.experiment = start(
           api_key=os.getenv("comet_api"),
           project_name=self.project_name,
-          workspace=self.comet_username
+          workspace=self.comet_username,
+          experiment_config= experiment_config
         )
         self.experiment.add_tag(self.tag)
         # watch weights [to be precise i want to watch sparsity.. but we will see that later]
@@ -148,7 +155,7 @@ class QTrainer:
     def _activekernelscount(self):
         kernel_counts = dict()
         for name,layer in self.model.named_modules():
-            if isinstance(layer,Qconv) or isinstance(layer,QconvT):
+            if isinstance(layer,Qconv):
                 depths = torch.relu(layer.depth_bit)
                 # count nnz depth bits
                 count =torch.sum(torch.where(depths>0,1,0)).item()
