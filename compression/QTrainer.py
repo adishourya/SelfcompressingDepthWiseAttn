@@ -11,7 +11,7 @@ from comet_ml.integration.pytorch import log_model,watch
 
 
 import torch
-from qmodules.QConv import Qconv
+from qmodules.QConv import Qconv, QconvT
 from qmodules.QLinear import QlinearMLP
 from tqdm import tqdm
 
@@ -148,7 +148,7 @@ class QTrainer:
     def _activekernelscount(self):
         kernel_counts = dict()
         for name,layer in self.model.named_modules():
-            if isinstance(layer,Qconv):
+            if isinstance(layer,Qconv) or isinstance(layer,QconvT):
                 depths = torch.relu(layer.depth_bit)
                 # count nnz depth bits
                 count =torch.sum(torch.where(depths>0,1,0)).item()

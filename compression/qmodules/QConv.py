@@ -108,7 +108,7 @@ class Qconv(torch.nn.Module):
 
 
 
-class QConvT(torch.nn.Module):
+class QconvT(torch.nn.Module):
     def __init__(self,
                  in_channels,
                  out_channels,

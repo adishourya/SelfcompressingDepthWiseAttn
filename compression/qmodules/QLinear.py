@@ -26,7 +26,7 @@ class QlinearMLP(torch.nn.Module):
 
     def size_layer(self):
         # sum of depth bits in rows.
-        return torch.sum(torch.relu(self.depth_bit)) * self.n
+        return torch.sum(torch.relu(self.depth_bit)) / self.n
 
     def _fakebits(self):
         return torch.sum(torch.exp2(torch.relu(torch.ceil(self.depth_bit))) * self.n)

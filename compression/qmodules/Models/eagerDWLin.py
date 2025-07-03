@@ -1,5 +1,5 @@
 import torch
-from qmodules.QConv import Qconv
+from qmodules.QConv import Qconv, QconvT
 from qmodules.QLinear import QlinearMLP
 from qmodules.spec.DWBlock import DWBlock
 from qmodules.spec.eagerLinAttn import SimpleLinearAttention2D
@@ -66,5 +66,5 @@ class EagerDWLin(torch.nn.Module):
         return out
 
     def _targetModules(self):
-        return (Qconv, QlinearMLP)
+        return (Qconv,QconvT, QlinearMLP)
 
