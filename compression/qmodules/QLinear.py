@@ -86,4 +86,4 @@ class QlinearHead(torch.nn.Module):
     def __call__(self,x):
         # quantize weight every forward pass
         W = self._quantized_weight()
-        return torch.nn.functional.linear(x,W,bias=self.linear.bias)
+        return torch.nn.functional.linear(x,W)

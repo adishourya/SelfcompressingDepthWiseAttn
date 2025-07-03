@@ -1,6 +1,7 @@
 import torch
 import einops
 from qmodules.QConv import Qconv
+from qmodules.QLinear import QlinearHead
 
 class SimpleLinearAttention2D(torch.nn.Module):
     def __init__(self, in_channels, heads=4, dim_per_head=32):
@@ -60,6 +61,12 @@ class SimpleLinearAttention2D(torch.nn.Module):
         out = self.out_proj(out)  # (B, C, H, W)
         return out
 
+
+
+
+
+
+#=========== a more std implementation
 class SingleHeadLinearAttention(torch.nn.Module):
     def __init__(self, dim_in, dim_out):
         super().__init__()
@@ -68,10 +75,10 @@ class SingleHeadLinearAttention(torch.nn.Module):
         self.eps = 1e-6
 
         # Vanilla linear layers for Q,K,V and output projection
-        self.q_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
-        self.k_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
-        self.v_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
-        self.out_proj = torch.nn.Linear(dim_out, dim_out, bias=False)
+        self.q_proj = QlinearHead(dim_in, dim_out)
+        self.k_proj = QlinearHead(dim_in, dim_out)
+        self.v_proj = QlinearHead(dim_in, dim_out)
+        self.out_proj = QlinearHead(dim_out, dim_out)
 
         self.kernel = torch.nn.functional.sigmoid
         # self.kernel = torch.nn.functional.gelu

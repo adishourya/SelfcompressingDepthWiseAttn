@@ -31,7 +31,7 @@ train_config = dict(
     eval_track_freq= 5, # Every xth epoch does an Eval Run 
     logging=True, # comet ml tracking 
     comet_username="adishourya",
-    tag="eager_once_bnorm",
+    tag="eager_lin_linattn",
     project_name="convolution_compressing"
 )
 

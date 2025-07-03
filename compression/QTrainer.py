@@ -12,7 +12,7 @@ from comet_ml.integration.pytorch import log_model,watch
 
 import torch
 from qmodules.QConv import Qconv, QconvT
-from qmodules.QLinear import QlinearMLP
+from qmodules.QLinear import QlinearMLP, QlinearHead
 from tqdm import tqdm
 
 class QTrainer:
@@ -155,6 +155,17 @@ class QTrainer:
                 kernel_counts[name] = count
         return kernel_counts
 
+    def _activeUpscalers(self):
+        kernel_counts = dict()
+        for name,layer in self.model.named_modules():
+            if isinstance(layer,QconvT):
+                depths = torch.relu(layer.depth_bit)
+                # count nnz depth bits
+                count =torch.sum(torch.where(depths>0,1,0)).item()
+                kernel_counts[name] = count
+        return kernel_counts
+
+
     def _activeLinearDualbasis(self):
         row_counts = dict()
         for name,layer in self.model.named_modules():
@@ -164,6 +175,13 @@ class QTrainer:
                 count = torch.sum(torch.where(depths>0,1,0)).item()
                 row_counts[name] = count
         return row_counts
+
+    def _activeAttnHeads(self):
+        head_counts = dict()
+        for name,layer in self.model.named_modules():
+            if isinstance(layer,QlinearHead ):
+                head_counts[name] = (layer.depth_bit > 0) * 1
+        return head_counts
 
     def _save_checkpoint(self):
         print("Saving")
@@ -177,7 +195,8 @@ class QTrainer:
 
 
     def _track(self, loss,
-               activekernels, activeduals,
+               activekernels,activeUpscalers,
+               activeDuals,activeHeads,
                bit_decay, epoch):
         """
         append loss and active kernel stats.
@@ -185,13 +204,15 @@ class QTrainer:
         """
         self.track_loss.append(loss)
         self.track_activekernels.append(activekernels.values())
-        self.track_activedualbasis.append(activeduals.values())
+        self.track_activedualbasis.append(activeDuals.values())
         self.track_decay.append(bit_decay)
         if self.logging:
              self.experiment.log_metric(name="loss", value=loss, step=epoch)
              self.experiment.log_metric(name="decay", value=bit_decay, step=epoch)
              self.experiment.log_metric(name="activekernels", value=sum(activekernels.values()), step=epoch)
-             self.experiment.log_metric(name="activeDualBasis", value=sum(activeduals.values()), step=epoch)
+             self.experiment.log_metric(name="activeUpscalers", value=sum(activeUpscalers.values()), step=epoch)
+             self.experiment.log_metric(name="activeDualBasis", value=sum(activeDuals.values()), step=epoch)
+             self.experiment.log_metric(name="activeHeads", value=sum(activeHeads.values()), step=epoch)
 
     @torch.no_grad
     def eval_run(self):
@@ -253,16 +274,20 @@ class QTrainer:
                 batch_count +=1
                 if batch_count % self.pbar_track_freq == 0:
                     activekernels = self._activekernelscount()
-                    activeduals = self._activeLinearDualbasis()
+                    activeUpscalers = self._activeUpscalers()
+                    activeDuals = self._activeLinearDualbasis()
+                    activeHeads = self._activeAttnHeads()
                     pbar_epoch.set_postfix(
                         loss=loss.item(),
                         activekernels = activekernels.values(),
-                        activeduals = activeduals.values(),
+                        activeDuals = activeDuals.values(),
                         decay=bit_decay.item(),
                     )
                     self._track(loss=loss.item(),
                                 activekernels=activekernels,
-                                activeduals = activeduals,
+                                activeUpscalers=activeUpscalers,
+                                activeDuals = activeDuals,
+                                activeHeads = activeHeads,
                                 bit_decay=bit_decay.item(),
                                 epoch=epoch)
 
