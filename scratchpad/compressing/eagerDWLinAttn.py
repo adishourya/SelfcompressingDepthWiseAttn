@@ -57,16 +57,16 @@ def _(einops, pe, plt, sample_img):
 @app.cell
 def _(torch):
     class DWBlock(torch.nn.Module):
-        def __init__(self, in_channels, out_channels, expand_ratio=4, kernel_size=3, stride=1, upscaling_factor = 2, upscaled_channels=4):
+        def __init__(self, in_channels, out_channels, expand_ratio=4, kernel_size=3, stride=1, upscaling_factor = 2,):
             super().__init__()
 
             # Compute mid channels and ensure compatibility with PixelShuffle(2)
             expanded_channels = in_channels * expand_ratio
-            shuffled_channels = expanded_channels/ (upscaling_factor * upscaling_factor)
+            upscaled_channels = expanded_channels// (upscaling_factor * upscaling_factor)
 
 
             self.expand = torch.nn.Sequential(
-                torch.nn.Conv2d(in_channels, expanded_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
+                torch.nn.Conv2d(in_channels, expanded_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=True),
                 # torch.nn.BatchNorm2d(expanded_channels),
                 torch.nn.GELU(),
             )
@@ -74,12 +74,16 @@ def _(torch):
             # self.learned_upscaling = torch.nn.ConvTranspose2d(expanded_channels,upscaled_channels,kernel_size=kernel_size,padding=kernel_size//2, stride=upscaling_factor)
 
             self.shuffle_upscaling = torch.nn.PixelShuffle(upscale_factor=upscaling_factor)
+            self.transpose_upscaling = torch.nn.Sequential(
+                torch.nn.ConvTranspose2d(in_channels=expanded_channels, out_channels= upscaled_channels,kernel_size=kernel_size, padding=kernel_size//2, stride=2),
+                torch.nn.GELU()
+            )
 
             self.depthwise = torch.nn.Sequential(
                 torch.nn.Conv2d(upscaled_channels, upscaled_channels, kernel_size=kernel_size, stride=stride,
                           padding=kernel_size // 2, groups=upscaled_channels, bias=False),
                 # torch.nn.BatchNorm2d(upscaled_channels),
-                torch.nn.ELU(),
+                torch.nn.GELU(),
             )
 
             self.project = torch.nn.Sequential(
@@ -93,7 +97,8 @@ def _(torch):
             identity = x
             expand = self.expand(x)
             # upscaled = self.learned_upscaling(expand)
-            upscaled = self.shuffle_upscaling(expand)
+            # upscaled = self.shuffle_upscaling(expand)
+            upscaled = self.transpose_upscaling(expand)
             dw = self.depthwise(upscaled)
             out = self.project(dw)
             #out = out + (self.use_residual)*identity
@@ -115,11 +120,11 @@ def _(dwconv, einops, out_pe, plt):
     plt.imshow(einops.rearrange(out_expand.detach() , "1 p h w -> h (p w)"),cmap="Oranges")
     plt.show()
 
-    plt.figure(figsize=(15,8))
+    plt.figure(figsize=(30,8))
     plt.imshow(einops.rearrange(out_upscaled.detach() , "1 p h w -> h (p w)"),cmap="grey")
     plt.show()
 
-    plt.figure(figsize=(15,8))
+    plt.figure(figsize=(30,8))
     plt.imshow(einops.rearrange(out_dw.detach() , "1 p h w -> h (p w)"),cmap="grey")
     plt.show()
 
@@ -147,8 +152,8 @@ def _(einops, torch):
             # self.kernel = lambda x : torch.nn.functional.elu(x) + 1
             # self.kernel = lambda x : 1 - x + x**2/2
             # self.kernel = torch.sin
-            self.kernel = torch.nn.functional.relu
-            # self.kernel = torch.nn.functional.gelu
+            self.kernel = torch.nn.functional.relu6
+            # self.kernel = torch.nn.functional.gelu6
             # self.kernel = lambda x : torch.exp(x - x.amax(dim=-1, keepdim=True))
 
 
