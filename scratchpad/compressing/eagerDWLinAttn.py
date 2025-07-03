@@ -68,14 +68,14 @@ def _(torch):
             self.expand = torch.nn.Sequential(
                 torch.nn.Conv2d(in_channels, expanded_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=True),
                 # torch.nn.BatchNorm2d(expanded_channels),
-                torch.nn.GELU(),
+                # torch.nn.Sigmoid(),
             )
 
             # self.learned_upscaling = torch.nn.ConvTranspose2d(expanded_channels,upscaled_channels,kernel_size=kernel_size,padding=kernel_size//2, stride=upscaling_factor)
 
             self.shuffle_upscaling = torch.nn.PixelShuffle(upscale_factor=upscaling_factor)
             self.transpose_upscaling = torch.nn.Sequential(
-                torch.nn.ConvTranspose2d(in_channels=expanded_channels, out_channels= upscaled_channels,kernel_size=kernel_size, padding=kernel_size//2, stride=2),
+                torch.nn.ConvTranspose2d(in_channels=expanded_channels, out_channels= upscaled_channels,kernel_size=kernel_size,padding =1,output_padding=1 ,stride=2),
                 torch.nn.GELU()
             )
 
@@ -85,21 +85,27 @@ def _(torch):
                 # torch.nn.BatchNorm2d(upscaled_channels),
                 torch.nn.GELU(),
             )
+            self.shuffle_downscaling =  torch.nn.PixelUnshuffle(2)
 
             self.project = torch.nn.Sequential(
                 torch.nn.Conv2d(upscaled_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2,stride=2, bias=False),
-                torch.nn.BatchNorm2d(out_channels),
+                # torch.nn.BatchNorm2d(out_channels),
+                torch.nn.GELU(),
             )
 
             #self.use_residual = (in_channels == out_channels and stride == 1)
 
         def forward(self, x):
             identity = x
+            print(x.shape)
             expand = self.expand(x)
+            print(expand.shape)
             # upscaled = self.learned_upscaling(expand)
             # upscaled = self.shuffle_upscaling(expand)
             upscaled = self.transpose_upscaling(expand)
+            print(upscaled.shape)
             dw = self.depthwise(upscaled)
+            # out = self.shuffle_downscaling(dw)
             out = self.project(dw)
             #out = out + (self.use_residual)*identity
             return out, expand, upscaled, dw
@@ -136,7 +142,7 @@ def _(dwconv, einops, out_pe, plt):
 
 @app.cell
 def _(einops, torch):
-    class SimpleLinearAttention2D(torch.nn.Module):
+    class ConvLinearAttention2D(torch.nn.Module):
         def __init__(self, in_channels, heads=8, dim_per_head=16):
             super().__init__()
             self.heads = heads
@@ -155,6 +161,9 @@ def _(einops, torch):
             self.kernel = torch.nn.functional.relu6
             # self.kernel = torch.nn.functional.gelu6
             # self.kernel = lambda x : torch.exp(x - x.amax(dim=-1, keepdim=True))
+
+            #
+            self.bn = torch.nn.BatchNorm2d(in_channels)
 
 
         def forward(self, x):
@@ -193,19 +202,213 @@ def _(einops, torch):
 
             # 9. Final projection back to in_channels
             out = self.out_proj(out)  # (B, C, H, W)
-            return out
-    sa = SimpleLinearAttention2D(in_channels=4)
-    return SimpleLinearAttention2D, sa
+            return self.bn(out)
+    ca = ConvLinearAttention2D(in_channels=4)
+    return ConvLinearAttention2D, ca
 
 
 @app.cell
-def _(einops, out_mbconv, plt, sa):
-    sa_out = sa(out_mbconv)
+def _(ca, einops, out_mbconv, plt):
+    sa_out = ca(out_mbconv)
     print(f"{sa_out.shape=}")
 
     plt.figure(figsize=(15,8))
     plt.imshow(einops.rearrange(sa_out.detach(),"1 c h w -> h (c w)"),cmap="grey")
     return (sa_out,)
+
+
+@app.cell
+def _():
+    # class SimpleLinearAttention2D_Vanilla(torch.nn.Module):
+    #     def __init__(self, in_channels, heads=8, dim_per_head=16):
+    #         super().__init__()
+    #         self.heads = heads
+    #         self.dim = dim_per_head
+    #         self.total_dim = heads * dim_per_head
+    #         self.eps = 1e-6
+
+    #         # Vanilla linear layers for Q, K, V projection and output projection
+    #         self.qkv_proj = torch.nn.Linear(in_channels, 3 * self.total_dim, bias=False)
+    #         self.out_proj = torch.nn.Linear(self.total_dim, in_channels, bias=False)
+
+    #         # Kernel activation function
+    #         # self.kernel = torch.nn.functional.relu6
+    #         self.kernel = torch.nn.functional.sigmoid
+
+    #         #bn
+    #         self.bn = torch.nn.BatchNorm2d(4)
+
+    #     def forward(self, x):
+    #         B, C, H, W = x.shape
+    #         N = H * W  # sequence length
+
+    #         # Flatten spatial dims and rearrange to (B, N, C)
+    #         x_flat = einops.rearrange(x, 'b c h w -> b (h w) c')
+
+    #         # Project Q, K, V: (B, N, 3 * total_dim)
+    #         qkv = self.qkv_proj(x_flat)
+
+    #         # Split Q, K, V: (B, N, 3, heads, dim) → rearranged to (3, B, heads, dim, N)
+    #         qkv = einops.rearrange(
+    #             qkv,
+    #             'b n (three h d) -> three b h d n',
+    #             three=3, h=self.heads, d=self.dim, n=N
+    #         )
+    #         q, k, v = qkv[0], qkv[1], qkv[2]  # each: (B, heads, dim, N)
+
+    #         # Apply kernel activation
+    #         q = self.kernel(q)
+    #         k = self.kernel(k)
+
+    #         # Pad V with normalizer row (dim + 1)
+    #         v = torch.nn.functional.pad(v, (0, 0, 0, 1), value=1.0)  # (B, heads, dim+1, N)
+
+    #         # Compute K^T @ V → (B, heads, dim+1, dim)
+    #         kv = torch.matmul(v, k.transpose(-1, -2))
+
+    #         # Attention output → (B, heads, dim+1, N)
+    #         out = torch.matmul(kv, q)
+
+    #         # Normalize output by last row
+    #         norm = out[:, :, -1:, :] + self.eps
+    #         out = out[:, :, :-1, :] / norm  # (B, heads, dim, N)
+
+    #         # Reshape back to (B, N, heads * dim)
+    #         out = einops.rearrange(out, 'b h d n -> b n (h d)')
+
+    #         # Project back to input channels
+    #         out = self.out_proj(out)  # (B, N, C)
+
+    #         # Reshape back to (B, C, H, W)
+    #         out = einops.rearrange(out, 'b (h w) c -> b c h w', h=H, w=W)
+
+    #         return self.bn(out)
+
+    # vanilla_la = SimpleLinearAttention2D_Vanilla(in_channels=4)
+    return
+
+
+@app.cell
+def _():
+    # vanilla_out= vanilla_la(out_mbconv)
+    # print(f"{vanilla_out.shape=}")
+
+    # plt.figure(figsize=(15,8))
+    # plt.imshow(einops.rearrange(vanilla_out.detach(),"1 c h w -> h (c w)"),cmap="grey")
+    return
+
+
+@app.cell
+def _(einops, torch):
+    class SingleHeadLinearAttention(torch.nn.Module):
+        def __init__(self, dim_in, dim_out):
+            super().__init__()
+            self.dim_in = dim_in
+            self.dim_out = dim_out
+            self.eps = 1e-6
+
+            # Vanilla linear layers for Q,K,V and output projection
+            self.q_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
+            self.k_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
+            self.v_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
+            self.out_proj = torch.nn.Linear(dim_out, dim_out, bias=False)
+
+            # self.kernel = torch.nn.functional.sigmoid
+            self.kernel = torch.nn.functional.relu6
+        
+
+        def forward(self, x):
+            # x: (B, N, dim_in)
+            B, N, _ = x.shape
+
+            # Project Q,K,V
+            q = self.kernel(self.q_proj(x))  # (B, N, dim_out)
+            k = self.kernel(self.k_proj(x))  # (B, N, dim_out)
+            v = self.v_proj(x)               # (B, N, dim_out)
+
+            # Add normalizer row to V along feature dim
+            # We need to pad dim_out → dim_out + 1 for the trick
+            v = torch.cat([v, torch.ones(B, N, 1, device=x.device)], dim=2)  # (B, N, dim_out+1)
+
+            # Compute K^T V: 
+            # k: (B, N, dim_out), v: (B, N, dim_out+1)
+            # We want: (B, dim_out+1, dim_out)
+            kv = torch.matmul(v.transpose(1, 2), k)  # (B, dim_out+1, dim_out)
+
+            # Compute output: (B, N, dim_out+1)
+            out = torch.matmul(kv, q.transpose(1, 2))  # (B, dim_out+1, N)
+            out = out.transpose(1, 2)                   # (B, N, dim_out+1)
+
+            # Normalize by last feature
+            norm = out[:, :, -1:] + self.eps            # (B, N, 1)
+            out = out[:, :, :-1] / norm                  # (B, N, dim_out)
+
+            # Output projection
+            out = self.out_proj(out)                     # (B, N, dim_out)
+
+            return out
+
+
+    class MultiHeadLinearAttention(torch.nn.Module):
+        def __init__(self, in_channels, heads=16, dim_per_head=32):
+            super().__init__()
+            self.heads = heads
+            self.dim_per_head = dim_per_head
+            self.total_dim = heads * dim_per_head
+
+            # We will project input channels into heads separately
+            self.input_proj = torch.nn.Linear(in_channels, self.total_dim, bias=False)
+
+            # Create a list of single head attention modules, one per head
+            self.heads_attn = torch.nn.ModuleList([
+                SingleHeadLinearAttention(dim_per_head, dim_per_head) for _ in range(heads)
+            ])
+
+            # Final output projection
+            self.out_proj = torch.nn.Linear(self.total_dim, in_channels, bias=False)
+
+            self.bn = torch.nn.BatchNorm2d(in_channels)
+
+        def forward(self, x):
+            B, C, H, W = x.shape
+            N = H * W
+
+            # Flatten spatial dims and project input to total_dim
+            x_flat = einops.rearrange(x, 'b c h w -> b (h w) c')
+            x_proj = self.input_proj(x_flat)  # (B, N, total_dim)
+
+            # Split into heads: (B, N, heads, dim_per_head) → (heads, B, N, dim_per_head)
+            x_heads = einops.rearrange(x_proj, 'b n (h d) -> h b n d', h=self.heads)
+
+            # Apply each head's attention independently
+            out_heads = [self.heads_attn[i](x_heads[i]) for i in range(self.heads)]  # each (B, N, dim_per_head)
+
+            # Concatenate heads: list of (B, N, dim_per_head) → (B, N, total_dim)
+            out = torch.cat(out_heads, dim=2)
+
+            # Final output projection
+            out = self.out_proj(out)  # (B, N, C)
+
+            # Reshape back to spatial
+            out = einops.rearrange(out, 'b (h w) c -> b c h w', h=H, w=W)
+
+            # BatchNorm expects (B,C,H,W)
+            out = self.bn(out)
+
+            return out
+
+    mha = MultiHeadLinearAttention(in_channels=4)
+    return MultiHeadLinearAttention, SingleHeadLinearAttention, mha
+
+
+@app.cell
+def _(einops, mha, out_mbconv, plt):
+    mha_out= mha(out_mbconv)
+    print(f"{mha_out.shape=}")
+
+    plt.figure(figsize=(15,8))
+    plt.imshow(einops.rearrange(mha_out.detach(),"1 c h w -> h (c w)"),cmap="grey")
+    return (mha_out,)
 
 
 @app.cell
