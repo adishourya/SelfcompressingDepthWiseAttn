@@ -301,6 +301,62 @@ def _():
 
 @app.cell
 def _(einops, torch):
+    # class SingleHeadLinearAttention(torch.nn.Module):
+    #     def __init__(self, dim_in, dim_out):
+    #         super().__init__()
+    #         self.dim_in = dim_in
+    #         self.dim_out = dim_out
+    #         self.eps = 1e-6
+
+    #         # Vanilla linear layers for Q,K,V and output projection
+    #         self.qkvo_proj = torch.nn.Linear(dim_in, 4 * dim_out)
+
+
+    #         self.q_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
+    #         self.k_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
+    #         self.v_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
+    #         self.out_proj = torch.nn.Linear(dim_out, dim_out, bias=False)
+
+    #         self.kernel = torch.nn.functional.sigmoid
+    #         # self.kernel = torch.nn.functional.gelu
+    #         # self.kernel = torch.nn.functional.relu6
+    #         # self.kernel = torch.nn.functional.relu
+
+
+    #     def forward(self, x):
+    #         # x: (B, N, dim_in)
+    #         B, N, _ = x.shape
+
+    #         qkvo = self.qkvo_proj(x)
+    #         # Project Q,K,V
+    #         q = self.kernel(qkvo[0])  # (B, N, dim_out)
+    #         k = self.kernel(qkvo[1])  # (B, N, dim_out)
+    #         v = self.v_proj(qkvo[2])               # (B, N, dim_out)
+
+    #         # Add normalizer row to V along feature dim
+    #         # We need to pad dim_out → dim_out + 1 for the trick
+    #         v = torch.cat([v, torch.ones(B, N, 1, device=x.device)], dim=2)  # (B, N, dim_out+1)
+
+    #         # Compute K^T V: 
+    #         # k: (B, N, dim_out), v: (B, N, dim_out+1)
+    #         # We want: (B, dim_out+1, dim_out)
+    #         kv = torch.matmul(v.transpose(1, 2), k)  # (B, dim_out+1, dim_out)
+
+    #         # Compute output: (B, N, dim_out+1)
+    #         out = torch.matmul(kv, q.transpose(1, 2))  # (B, dim_out+1, N)
+    #         out = out.transpose(1, 2)                   # (B, N, dim_out+1)
+
+    #         # Normalize by last feature
+    #         norm = out[:, :, -1:] + self.eps            # (B, N, 1)
+    #         out = out[:, :, :-1] / norm                  # (B, N, dim_out)
+
+    #         # Output projection
+    #         out = self.out_proj(out)                     # (B, N, dim_out)
+
+    #         return out
+
+
+
     class SingleHeadLinearAttention(torch.nn.Module):
         def __init__(self, dim_in, dim_out):
             super().__init__()
@@ -308,52 +364,39 @@ def _(einops, torch):
             self.dim_out = dim_out
             self.eps = 1e-6
 
-            # Vanilla linear layers for Q,K,V and output projection
-            self.q_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
-            self.k_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
-            self.v_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
-            self.out_proj = torch.nn.Linear(dim_out, dim_out, bias=False)
+            # Fused QKVO projection: (B, T, 4 * D_out)
+            self.qkvo_proj = torch.nn.Linear(dim_in, 4 * dim_out)
 
+            # Activation kernel
             self.kernel = torch.nn.functional.sigmoid
-            # self.kernel = torch.nn.functional.gelu
-            # self.kernel = torch.nn.functional.relu6
-            # self.kernel = torch.nn.functional.relu
-
 
         def forward(self, x):
-            # x: (B, N, dim_in)
-            B, N, _ = x.shape
+            # x: (B, T, D_in)
+            B, T, _ = x.shape
 
-            # Project Q,K,V
-            q = self.kernel(self.q_proj(x))  # (B, N, dim_out)
-            k = self.kernel(self.k_proj(x))  # (B, N, dim_out)
-            v = self.v_proj(x)               # (B, N, dim_out)
+            # Compute fused projection
+            qkvo = self.qkvo_proj(x)  # (B, T, 4*D)
+            # Rearrange to (4, B, T, D)
+            qkv = einops.rearrange(qkvo, "b t (four d) -> four b t d", four=4)
 
-            # Add normalizer row to V along feature dim
-            # We need to pad dim_out → dim_out + 1 for the trick
-            v = torch.cat([v, torch.ones(B, N, 1, device=x.device)], dim=2)  # (B, N, dim_out+1)
+            q = self.kernel(qkv[0])  # (B, T, D)
+            k = self.kernel(qkv[1])  # (B, T, D)
+            v = qkv[2]               # (B, T, D)
+            o = qkv[3]               # (B, T, D)
 
-            # Compute K^T V: 
-            # k: (B, N, dim_out), v: (B, N, dim_out+1)
-            # We want: (B, dim_out+1, dim_out)
-            kv = torch.matmul(v.transpose(1, 2), k)  # (B, dim_out+1, dim_out)
+            # Compute attention
+            k_sum = k.sum(dim=1, keepdim=True) + self.eps         # (B, 1, D)
+            D_inv = 1.0 / (torch.einsum("btd,btd->bt", q, k_sum) + self.eps)  # (B, T)
 
-            # Compute output: (B, N, dim_out+1)
-            out = torch.matmul(kv, q.transpose(1, 2))  # (B, dim_out+1, N)
-            out = out.transpose(1, 2)                   # (B, N, dim_out+1)
+            # Context: (B, D, D)
+            context = torch.einsum("btd,bte->bde", k, v)
+            out = torch.einsum("btd,bde->bte", q, context)         # (B, T, D)
 
-            # Normalize by last feature
-            norm = out[:, :, -1:] + self.eps            # (B, N, 1)
-            out = out[:, :, :-1] / norm                  # (B, N, dim_out)
-
-            # Output projection
-            out = self.out_proj(out)                     # (B, N, dim_out)
-
-            return out
+            return out + o
 
 
     class MultiHeadLinearAttention(torch.nn.Module):
-        def __init__(self, in_channels, heads=16, dim_per_head=32):
+        def __init__(self, in_channels, heads=16, dim_per_head=16):
             super().__init__()
             self.heads = heads
             self.dim_per_head = dim_per_head
