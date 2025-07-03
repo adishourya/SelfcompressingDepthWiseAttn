@@ -69,7 +69,7 @@ class Qconv(torch.nn.Module):
         # [Remember] torch.prod is a reduction on product operation.. not a scan op.
         # size = torch.prod(prods) *  torch.sum(torch.relu(self.depth_bit))
         #return size
-        return torch.sum((torch.exp2(torch.relu(self.depth_bit)) - 1) * prods)
+        return torch.sum((torch.exp2(torch.relu(self.depth_bit)) - 1) * torch.prod(prods))
         # return torch.sum( torch.exp2(torch.relu(self.depth_bit) -1) * prods)
 
     def _fakebits(self):
@@ -169,7 +169,7 @@ class QConvT(torch.nn.Module):
         """ I*H*W * sum(b(i,l)) for compression cost """
         prods = torch.as_tensor(self.weight.shape[1:])
         #return torch.prod(prods) * torch.sum(torch.relu(self.depth_bit))
-        return torch.sum((torch.exp2(torch.relu(self.depth_bit)) - 1) * prods)
+        return torch.sum((torch.exp2(torch.relu(self.depth_bit)) - 1) * torch.prod(prods))
         # return torch.sum( torch.exp2(torch.relu(self.depth_bit)) * prods)
 
     def _fakebits(self):
