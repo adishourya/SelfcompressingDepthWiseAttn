@@ -1,8 +1,8 @@
 import torch
 from qmodules.QConv import Qconv, QconvT
-from qmodules.QLinear import QlinearMLP
+from qmodules.QLinear import QlinearMLP , QlinearHead
 from qmodules.spec.DWBlock import DWBlock
-from qmodules.spec.eagerLinAttn import SimpleLinearAttention2D
+from qmodules.spec.eagerLinAttn import SimpleLinearAttention2D , MultiHeadLinearAttention
 from qmodules.QPE import ProjectionEmbedding
 import matplotlib.pyplot as plt
 import einops
@@ -12,7 +12,8 @@ class TransformerBlock(torch.nn.Module):
     def __init__(self, in_channels, num_heads, head_dim):
         super().__init__()
         self.dwblock = DWBlock(in_channels=in_channels, out_channels=in_channels)
-        self.attn = SimpleLinearAttention2D(in_channels=in_channels, heads=num_heads, dim_per_head=head_dim)
+        # self.attn = SimpleLinearAttention2D(in_channels=in_channels, heads=num_heads, dim_per_head=head_dim)
+        self.attn = MultiHeadLinearAttention(in_channels=in_channels, heads=num_heads, dim_per_head=head_dim)
         self.bn = torch.nn.BatchNorm2d(in_channels)
 
     def forward(self, x):
@@ -66,5 +67,5 @@ class EagerDWLin(torch.nn.Module):
         return out
 
     def _targetModules(self):
-        return (Qconv,QconvT, QlinearMLP)
+        return (Qconv,QconvT, QlinearMLP, QlinearHead)
 

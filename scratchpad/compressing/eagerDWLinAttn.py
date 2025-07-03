@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.11.13"
+__generated_with = "0.11.21"
 app = marimo.App(width="medium")
 
 
@@ -159,6 +159,7 @@ def _(einops, torch):
             # self.kernel = lambda x : 1 - x + x**2/2
             # self.kernel = torch.sin
             self.kernel = torch.nn.functional.relu6
+            # self.kernel = torch.nn.functional.sigmoid
             # self.kernel = torch.nn.functional.gelu6
             # self.kernel = lambda x : torch.exp(x - x.amax(dim=-1, keepdim=True))
 
@@ -313,9 +314,11 @@ def _(einops, torch):
             self.v_proj = torch.nn.Linear(dim_in, dim_out, bias=False)
             self.out_proj = torch.nn.Linear(dim_out, dim_out, bias=False)
 
-            # self.kernel = torch.nn.functional.sigmoid
-            self.kernel = torch.nn.functional.relu6
-        
+            self.kernel = torch.nn.functional.sigmoid
+            # self.kernel = torch.nn.functional.gelu
+            # self.kernel = torch.nn.functional.relu6
+            # self.kernel = torch.nn.functional.relu
+
 
         def forward(self, x):
             # x: (B, N, dim_in)
