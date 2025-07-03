@@ -13,12 +13,13 @@ class TransformerBlock(torch.nn.Module):
         super().__init__()
         self.dwblock = DWBlock(in_channels=in_channels, out_channels=in_channels)
         self.attn = SimpleLinearAttention2D(in_channels=in_channels, heads=num_heads, dim_per_head=head_dim)
+        self.bn = torch.nn.BatchNorm2d(in_channels)
 
     def forward(self, x):
         identity = x
         x = self.dwblock(x)
         x = self.attn(x)
-        return torch.nn.BatchNorm2d(identity + x)
+        return self.bn(identity + x)
 
 
 class EagerDWLin(torch.nn.Module):
