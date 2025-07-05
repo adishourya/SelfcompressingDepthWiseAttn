@@ -26,12 +26,12 @@ train_config = dict(
     to_compile = True,
     dtype = torch.float32,      # overflows if natively trained at fp16
     amp_dtype = torch.bfloat16, # "simulate" automatic mixed precision type 
-    compression_gamma = 0.5, # layersize coefficient
+    compression_gamma = 0.8, # layersize coefficient
     pbar_track_freq=50, # Every xth batch updates the progress bar
     eval_track_freq= 5, # Every xth epoch does an Eval Run 
     logging=True, # comet ml tracking 
     comet_username="adishourya",
-    tag="eager_lin_linattn",
+    tag="eager_linattn_scheduler",
     project_name="convolution_compressing"
 )
 

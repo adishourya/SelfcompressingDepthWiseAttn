@@ -9,8 +9,9 @@ class QlinearMLP(torch.nn.Module):
     i.e we will try to prune column weights
     """
 
-    def __init__(self,m:int,n:int,b=2.0,e=-8.0):
+    def __init__(self,m:int,n:int,b=2.0,e=-8.0,bias=True):
         self.m , self.n = m,n
+        self.bias = bias
         super().__init__()
         b = torch.as_tensor(b)
         e = torch.as_tensor(e)
@@ -26,7 +27,7 @@ class QlinearMLP(torch.nn.Module):
 
     def size_layer(self):
         # sum of depth bits in rows.
-        return torch.sum(torch.relu(self.depth_bit)) / self.n
+        return torch.sum(torch.relu(self.depth_bit)) / (self.m* self.n)
 
     def _fakebits(self):
         return torch.sum(torch.exp2(torch.relu(torch.ceil(self.depth_bit))) * self.n)
@@ -43,7 +44,8 @@ class QlinearMLP(torch.nn.Module):
     def __call__(self,x):
         # quantize weight every forward pass
         W = self._quantized_weight()
-        return torch.nn.functional.linear(x,W,bias=self.linear.bias)
+        bias = self.linear.bias * (self.bias * 1)
+        return torch.nn.functional.linear(x,W,bias=bias)
         
         
 class QlinearHead(torch.nn.Module):

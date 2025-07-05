@@ -2,6 +2,8 @@
 import os
 os.getenv("comet_api")
 
+import math
+
 import datetime
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 os.makedirs("assets", exist_ok=True)
@@ -110,10 +112,13 @@ class QTrainer:
 
     def _setup_logging(self):
         experiment_config = ExperimentConfig(
+            log_env_cpu=False,
+            log_env_network=False,
+            log_env_disk=False,
+            auto_histogram_epoch_rate=10,# default 1 
             auto_histogram_weight_logging=True,
             auto_histogram_gradient_logging=False,
             auto_histogram_activation_logging=False,
-            auto_histogram_epoch_rate = 2, # for heavy experiments keep it 2. default 1
         )
         self.experiment = start(
           api_key=os.getenv("comet_api"),
@@ -150,6 +155,16 @@ class QTrainer:
         # size_conv = torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,Qconv)]))
         # size_lin =  torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
         return size
+
+
+    def gamma_scheduler(self, epoch, total_epochs, gamma_start=0.5, gamma_end=0.8):
+        """
+        Smoothly increase gamma from gamma_start to gamma_end over total_epochs using a sin curve.
+        """
+        # Sinusoidal interpolation from 0 to 1
+        progress = math.sin((epoch / total_epochs) * (math.pi / 2))
+        return gamma_start + (gamma_end - gamma_start) * progress
+
 
 
     def _activekernelscount(self):
@@ -204,7 +219,7 @@ class QTrainer:
     def _track(self, loss,
                activekernels,activeUpscalers,
                activeDuals,activeHeads,
-               bit_decay, epoch):
+               bit_decay, epoch,gamma):
         """
         append loss and active kernel stats.
         optionally loggs them to comet_ml
@@ -220,6 +235,7 @@ class QTrainer:
              self.experiment.log_metric(name="activeUpscalers", value=sum(activeUpscalers.values()), step=epoch)
              self.experiment.log_metric(name="activeDualBasis", value=sum(activeDuals.values()), step=epoch)
              self.experiment.log_metric(name="activeHeads", value=sum(activeHeads.values()), step=epoch)
+             self.experiment.log_metric(name="compression_factor", value=gamma, step=epoch)
 
     @torch.no_grad
     def eval_run(self):
@@ -236,15 +252,14 @@ class QTrainer:
             batch_img = batch_img.to("cuda").to(self.dtype)
             batch_label = batch_label.to("cuda")
             out = self.model(batch_img)
-            bit_decay = self._qlayersize()/self.qtot_init
-            total_loss += torch.nn.functional.cross_entropy(input=out,target=batch_label) + self.gamma * bit_decay
+            total_loss += torch.nn.functional.cross_entropy(input=out,target=batch_label)
             prediction = torch.argmax(out,dim=1)
             total_correct += (prediction==batch_label).sum().item()
             total_samples += batch_label.size(0)
 
         end_time.record()
         torch.cuda.synchronize()
-        elapsed_time = start_time.elapsed_time(end_time)/1000.0
+        elapsed_time = start_time.elapsed_time(end_time)
 
         model_bits = self.__model_fbits()
         avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
@@ -266,7 +281,8 @@ class QTrainer:
                 with torch.autocast(device_type="cuda",dtype=self.amp_dtype):
                     out = self.model(batch_img)
                     bit_decay = self._qlayersize() / self.qtot_init
-                    loss = torch.nn.functional.cross_entropy(input=out,target=batch_label) + self.gamma * bit_decay
+                    gamma_factor = self.gamma_scheduler(epoch=epoch,total_epochs=num_epochs, gamma_end = self.gamma)
+                    loss = torch.nn.functional.cross_entropy(input=out,target=batch_label) + gamma_factor * bit_decay
 
                 # loss.backward()
                 self.scaler.scale(loss).backward()
@@ -296,7 +312,8 @@ class QTrainer:
                                 activeDuals = activeDuals,
                                 activeHeads = activeHeads,
                                 bit_decay=bit_decay.item(),
-                                epoch=epoch)
+                                epoch=epoch,gamma=gamma_factor
+                                )
 
             # eval tracking
             if epoch % self.eval_track_freq == 0:

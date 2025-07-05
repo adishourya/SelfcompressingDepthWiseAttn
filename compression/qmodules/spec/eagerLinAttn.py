@@ -1,7 +1,9 @@
 import torch
 import einops
 from qmodules.QConv import Qconv
-from qmodules.QLinear import QlinearHead
+from qmodules.QLinear import QlinearHead, QlinearMLP
+
+#======== how efficient vit does it.... almost========
 
 class SimpleLinearAttention2D(torch.nn.Module):
     def __init__(self, in_channels, heads=4, dim_per_head=32):
@@ -79,7 +81,8 @@ class SingleHeadLinearAttention(torch.nn.Module):
         self.qkvo_proj = QlinearHead(dim_in, 4 * dim_out)
 
         # Activation kernel
-        self.kernel = torch.nn.functional.sigmoid
+        # self.kernel = torch.nn.functional.sigmoid
+        self.kernel = torch.nn.functional.relu6
 
     def forward(self, x):
         # x: (B, T, D_in)
@@ -114,6 +117,7 @@ class MultiHeadLinearAttention(torch.nn.Module):
         self.total_dim = heads * dim_per_head
 
         # We will project input channels into heads separately
+        # no point of using QlinearMLP... doesnt prune much
         self.input_proj = torch.nn.Linear(in_channels, self.total_dim, bias=False)
 
         # Create a list of single head attention modules, one per head
@@ -122,6 +126,7 @@ class MultiHeadLinearAttention(torch.nn.Module):
         ])
 
         # Final output projection
+        # similarly no point of QlinearMLP
         self.out_proj = torch.nn.Linear(self.total_dim, in_channels, bias=False)
 
         self.bn = torch.nn.BatchNorm2d(in_channels)
@@ -137,7 +142,7 @@ class MultiHeadLinearAttention(torch.nn.Module):
         # Split into heads: (B, N, heads, dim_per_head) → (heads, B, N, dim_per_head)
         x_heads = einops.rearrange(x_proj, 'b n (h d) -> h b n d', h=self.heads)
 
-        # Apply each head's attention independently
+        # we will do this later parallely... dont know if compile does this sequentially
         out_heads = [self.heads_attn[i](x_heads[i]) for i in range(self.heads)]  # each (B, N, dim_per_head)
 
         # Concatenate heads: list of (B, N, dim_per_head) → (B, N, total_dim)
