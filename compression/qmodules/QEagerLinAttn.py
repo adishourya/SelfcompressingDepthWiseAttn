@@ -7,9 +7,9 @@ class QEagerLinearAttention(torch.nn.Module):
     def __init__(self, dim_in, heads=16, dim_per_head=32, b=2.0 ,e=-8.0):
         super().__init__()
         b = torch.as_tensor(b)
-        e = torch.as_tensor(e) 
-        self.heads = heads
-        self.dim_per_head = dim_per_head
+        e = torch.as_tensor(e)
+        self.heads = torch.as_tensor(heads)
+        self.dim_per_head = torch.as_tensor(dim_per_head)
         self.total_dim = heads * dim_per_head
         self.eps = 1e-6
         self.kernel = torch.nn.functional.relu6
@@ -19,25 +19,27 @@ class QEagerLinearAttention(torch.nn.Module):
 
         # receives 4, b, t, h ,d
         self.depth_bit = torch.ones(1,1,1,self.heads,1) * b
-        self.exp_bit= torch.ones(1,1,1,self.heads,1) * b
+        self.exp_bit= torch.ones(1,1,1,self.heads,1) * e
 
 
         # Output projection
         self.out_proj = torch.nn.Linear(self.total_dim, dim_in, bias=False)
 
     def _quantized_weight(self,x):
-        b = torch.relu(self.depth_bit)
-        x_upscaled = x/torch.exp2(self.exp_bit)
+        b = torch.relu(self.depth_bit.to(x.device))
+        e = self.exp_bit.to(x.device)
+
+        x_upscaled = x/torch.exp2(e)
         half = torch.exp2(b -1)
         x_clipped = torch.clip(x_upscaled,-1*half,half-1)
         x_round = steRound(x_clipped)
-        return torch.exp2(self.exp_bit) * x_round
+        return torch.exp2(e) * x_round
 
     def size_layer(self):
-        return torch.sum(torch.relu(self.depth_bit) * 4* self.dim_per_head * self.dim_per_head)
+        return torch.sum(torch.relu(self.depth_bit) * self.dim_per_head)
 
     def _fakebits(self):
-        return torch.sum(torch.relu(self.depth_bit) * 4* self.dim_per_head * self.dim_per_head)
+        return torch.sum(torch.exp2(torch.relu(self.depth_bit)) * 4* self.dim_per_head * self.dim_per_head)
 
     def forward(self, x):
         # x: (B, T, D_in)
@@ -57,7 +59,8 @@ class QEagerLinearAttention(torch.nn.Module):
         k_sum = k.sum(dim=1, keepdim=True) + self.eps  # (B, 1, H, D_h)
         # the contraction here would be a dot porduct of: bthd_q , bthd_k
         # and then we add a fake dimension for later.
-        D_inv = 1.0 / (torch.einsum('bthq, b1hk -> bth', q, k_sum).unsqueeze(-1) + self.eps)  # (B, T, H, 1)
+        # here o is 1. torch einsum does not allow "1".. smh
+        D_inv = 1.0 / (torch.einsum('bthq, bohk -> bth', q, k_sum).unsqueeze(-1) + self.eps)  # (B, T, H, 1)
 
         # across tokens quadratic on head size
         context = torch.einsum('bthk,bthv->bhkv', k, v)  # (B, H, D_h, D_h)

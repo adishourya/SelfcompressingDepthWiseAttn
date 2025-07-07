@@ -1,8 +1,8 @@
 import torch
 from qmodules.QConv import Qconv, QconvT
-from qmodules.QLinear import QlinearMLP , QlinearHead
+from qmodules.QLinear import QlinearMLP
 from qmodules.spec.DWBlock import DWBlock
-from qmodules.QEagerLinAttn import QEagerLinearAttntion,MultiHeadLinearAttention
+from qmodules.QEagerLinAttn import QEagerLinearAttention,MultiHeadLinearAttention
 
 # from qmodules.spec.eagerLinAttn import SimpleLinearAttention2D , MultiHeadLinearAttention
 from qmodules.QPE import ProjectionEmbedding
@@ -69,5 +69,5 @@ class EagerDWLin(torch.nn.Module):
         return out
 
     def _targetModules(self):
-        return (Qconv,QconvT, QlinearMLP,QEagerLinearAttntion)
+        return (Qconv,QconvT, QlinearMLP,QEagerLinearAttention)
 

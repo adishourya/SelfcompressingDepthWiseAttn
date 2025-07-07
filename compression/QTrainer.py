@@ -203,11 +203,11 @@ class QTrainer:
         head_counts = dict()
         for name,layer in self.model.named_modules():
             if isinstance(layer,QEagerLinearAttention ):
-                depths = torch.relu(layer.depth_bit)
+                depths = torch.relu(layer.depth_bit.view(-1))
                 # count nnz depth bits
                 count =torch.sum(torch.where(depths>0,1,0)).item()
                 head_counts[name] = count
-                return head_counts
+        return head_counts
 
     def _save_checkpoint(self):
         print("Saving")
