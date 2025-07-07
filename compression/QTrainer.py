@@ -14,7 +14,8 @@ from comet_ml.integration.pytorch import log_model,watch
 
 import torch
 from qmodules.QConv import Qconv, QconvT
-from qmodules.QLinear import QlinearMLP, QlinearHead
+from qmodules.QLinear import QlinearMLP
+from qmodules.QEagerLinAttn import QEagerLinearAttention
 from tqdm import tqdm
 
 class QTrainer:
@@ -25,12 +26,12 @@ class QTrainer:
                  model,
                  train_loader,
                  eval_loader,
-                 to_compile=True,
-                 dtype=torch.float32,
-                 amp_dtype =torch.float32,
-                 compression_gamma = 0.1,
-                 pbar_track_freq = 50,
-                 eval_track_freq = 5,
+                 to_compile:bool=True,
+                 dtype:torch.dtype=torch.float32,
+                 amp_dtype:torch.dtype =torch.float32,
+                 compression_gamma :float= 0.1,
+                 pbar_track_freq:int = 50,
+                 eval_track_freq:int = 5,
                  logging=False,
                  comet_username="adishourya",
                  tag="low_bval",
@@ -201,9 +202,12 @@ class QTrainer:
     def _activeAttnHeads(self):
         head_counts = dict()
         for name,layer in self.model.named_modules():
-            if isinstance(layer,QlinearHead ):
-                head_counts[name] = (layer.depth_bit > 0) * 1
-        return head_counts
+            if isinstance(layer,QEagerLinearAttention ):
+                depths = torch.relu(layer.depth_bit)
+                # count nnz depth bits
+                count =torch.sum(torch.where(depths>0,1,0)).item()
+                head_counts[name] = count
+                return head_counts
 
     def _save_checkpoint(self):
         print("Saving")
