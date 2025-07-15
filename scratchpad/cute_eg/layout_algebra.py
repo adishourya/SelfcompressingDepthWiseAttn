@@ -258,7 +258,15 @@ def example_bymode_composition():
     # Print static and dynamic information
     print(">>> Tiler:", tiler)
     print(">>> By-mode Composition Result:", result)
+    
+@cute.jit
+def example_complement():
+    # l1 = cute.make_layout(shape=(4,(2,3)),
+    #                       stride=(2,(1,8)))
 
+    l1 = cute.make_layout(shape=((2,4),3),
+                          stride=((1,6),2))
+    visualize_layout(l1)
 
 @cute.jit
 def example_logical_divide():
@@ -293,6 +301,7 @@ if __name__ == "__main__":
     # example_composition_layouts()
     # example_composition_layout2()
     # example_bymode_composition()
-    example_logical_divide()
+    # example_logical_divide()
+    example_complement()
 
     pass
