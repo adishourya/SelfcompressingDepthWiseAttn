@@ -451,7 +451,61 @@ complement idea:
 implement generic tiling, we want to be able to select arbitrary elements – the
 tile – and to describe the layout of those tiles – the leftovers, or the “rest.”
 
-> no examples in python cute were given
+The complement returns the rest. it takes a layout and a shape as input arg.
+the shape is also called as co-target here.
+
+The cotarget parameter above is most commonly an integer. 
+Examples:
+1. Complement(4:1 , 24)
+> 6 : 4
+step1 : find a layout which has the co-sizze of 24 that also produces the input
+layout when de-concatinated
+(4,6) : 1,4 => [4:1, 6:4]
+the layout 4:1 is effectively repeated (concatinated) 6 times with 6:4 on the second mode.
+
+2. Complement(6:4, 24)
+> 4 : 1
+similar concat idea. 4,6 : 1,4 has a co-size of 24
+=>[4:1 , 6:4]
+returns 4:1 
+
+3. Complement((4,6):(1,4), 24)
+already has cosize of 24. nothing needs to be concatinated.
+> 1 : 0 which is just 0
+
+4. Complement(4:2 , 24)
+note we can no longer make simpleton 6,4 layouts as something like
+6,4 : 1,2 is not valid.
+6,4 : 1,4 does not produce 4 : 2 in de-concatination
+6,4 : 12,2 has a co-size of 66 > 24
+ Layout: shape=(6, 4), stride=(12, 2)
+  0   2   4   6
+ 12  14  16  18
+ 24  26  28  30
+ 36  38  40  42
+ 48  50  52  54
+ 60  62  64  66
+
+imagine a layout 4,(2,3) : 2, (1,8) has a co-size of 24
+Layout: shape=(4, (2, 3)), stride=(2, (1, 8))
+  0   1   8   9  16  17
+  2   3  10  11  18  19
+  4   5  12  13  20  21
+  6   7  14  15  22  23
+
+  so the layout can be de-concatinated as [4:2 , 2,3:1:8]
+  > 2,3 : 1,8
+
+  5. Complement((2,4):(1,6) , 24)
+  that is : Layout: shape=(2, 4), stride=(1, 6)
+  0   6  12  18
+  1   7  13  19
+
+note ((2,4),3) : ((1,6),2) has a co-size of 24
+> 3:2
+
+
+
 
 ## Tiling or Division
 
