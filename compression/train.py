@@ -19,8 +19,9 @@ from qmodules.Models.eagerDWLin import EagerDWLin
 from QTrainer import QTrainer
 
 train_config = dict(
-    # model = QPureconvModel, 
-    model = EagerDWLin, 
+    # model = QPureconvModel(), 
+    model = EagerDWLin(num_heads=16,head_dim=16,repeat_transformer=2), 
+    # model = QconvModel(),
     train_loader = train_loader,
     eval_loader = eval_loader,
     to_compile = True,
@@ -31,13 +32,12 @@ train_config = dict(
     eval_track_freq= 5, # Every xth epoch does an Eval Run 
     logging=True, # comet ml tracking 
     comet_username="adishourya",
-    tag="eager_linattn_scheduler",
+    tag="convModel",
     project_name="convolution_compressing"
 )
-
 
 if __name__ == "__main__":
     qtrainer = QTrainer(**train_config)
     #qtrainer.train(1)
-    qtrainer.train(1000)
-    # qtrainer.train(100)
+    # qtrainer.train(1000)
+    qtrainer.train(100)

@@ -7,12 +7,14 @@ from comet_ml import start , ExperimentConfig
 from comet_ml.integration.pytorch import log_model,watch
 
 import torch
+from torch.profiler import profile,ProfilerActivity
+from ptflops import get_model_complexity_info
 from qmodules.QConv import Qconv, QconvT
 from qmodules.QLinear import QlinearMLP
 from qmodules.QEagerLinAttn import QEagerLinearAttention
 from tqdm import tqdm
 
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 os.makedirs("assets", exist_ok=True)
 
 class QTrainer:
@@ -34,7 +36,7 @@ class QTrainer:
                  tag="low_bval",
                  project_name="convolution_compressing"):
 
-        self.model = model()
+        self.model = model
         self.train_loader =train_loader
         self.eval_loader = eval_loader
         self.to_compile = to_compile
@@ -68,6 +70,8 @@ class QTrainer:
         self.scaler = torch.amp.GradScaler()
         # no need to do to dtype
         self.model = self.model.to(self.dtype)
+        # if self.to_compile:
+        #     self.model = torch.compile(self.model)
         self.model = torch.compile(self.model) if self.to_compile else self.model
         # if self.to_compile:
         #     self.model = torch.compile(self.model)
@@ -103,11 +107,25 @@ class QTrainer:
         print(f"Model Bits: {self.model_fbits=}")
         print(f"Model Qconvs: {self._activeModuleCount(Qconv)=}")
 
+        # expected flops
+        batch_imgs, _ = next(iter(eval_loader))
+        input_res = tuple(batch_imgs.shape[1:])
+        macs, params = get_model_complexity_info(
+            model,
+            input_res=input_res,
+            as_strings=False,
+            print_per_layer_stat=False,
+            verbose=False
+        )
+        print(f"MACs: {macs}, Params: {params}")
+
         if self.logging:
+            # one-time logging
             self.experiment.log_metric(name="Init Parameters", value=self.tot_init)
             self.experiment.log_metric(name="Total Qparams ", value=self.tot_qparams)
             self.experiment.log_metric(name="Total Layersize ", value=self.qtot_init)
             self.experiment.log_metric(name="Total Fbits", value=self.model_fbits)
+            self.experiment.log_metric(name="MACs",value=macs)
 
     def _setup_logging(self):
         experiment_config = ExperimentConfig(
@@ -124,7 +142,6 @@ class QTrainer:
           experiment_config= experiment_config
         )
         self.experiment.add_tag(self.tag)
-        # watch weights [to be precise i want to watch sparsity.. but we will see that later]
         # this is costly
         watch(self.model)
 
@@ -238,20 +255,12 @@ class QTrainer:
         torch.cuda.synchronize()
 
         elapsed_time_sec = start_time.elapsed_time(end_time)/1000
-        _,c,h,w = batch_img.shape
-        img_bytes = c * h * w
-        total_bytes = (len(self.eval_loader)*self.tot_init + total_samples*img_bytes) * 4
-        bandwidth = total_bytes/1e9/elapsed_time_sec
         latency = total_samples/elapsed_time_sec
 
         model_bits = self.__model_fbits()
         avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
-
-        # sparisty nz elems
-        sparsity = sum((p == 0).sum() for group in self.optim.param_groups for p in group['params'] if p.requires_grad)
-        sparsity = sparsity / self.tot_init
-
-        return avg_loss, avg_accuracy, model_bits, latency, bandwidth, sparsity
+   
+        return avg_loss, avg_accuracy, model_bits, latency
 
     # @torch.compile # this will not work if you want to track modules states in dict and such.. dynamo error. compile model instead.
     def train(self,num_epochs=10):
@@ -277,7 +286,7 @@ class QTrainer:
                 self.scaler.step(self.optim)
                 # flush previous grad
                 self.optim.zero_grad()
-                # remember to update the scaler for next iter
+                # (scaler specific) remember to update the scaler for next iter
                 self.scaler.update()
 
                 # progress bar update [batch count] 
@@ -307,21 +316,19 @@ class QTrainer:
             # eval tracking
             if epoch % self.eval_track_freq == 0:
                 self.model.eval()
-                avg_loss , avg_accuracy, model_fbits, throughput,bandwidth,sparsity = self.eval_run()
-                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {model_fbits=} {throughput=} {bandwidth=}")
+                avg_loss , avg_accuracy, model_fbits, throughput= self.eval_run()
+                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {model_fbits=} {throughput=}")
                 if self.logging:
                     self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
                     self.experiment.log_metric(name="Model Fbits", value=model_fbits, step=epoch)
                     self.experiment.log_metric(name="Throughput", value=throughput, step=epoch)
-                    self.experiment.log_metric(name="Bandwidth(GB/s)", value=bandwidth, step=epoch)
-                    self.experiment.log_metric(name="Sparsity", value=sparsity, step=epoch)
         # finishing up
         checkpoint = self._save_checkpoint()
         if self.logging:
             # this also saves the model weights
             log_model(self.experiment,checkpoint,model_name=self.tag)
-        torch.save(checkpoint,f"assets/{self.tag}_ckpt.pth_{timestamp}")
+        torch.save(checkpoint,f"assets/{self.tag}_ckpt.pth_{TIMESTAMP}")
 
         return self.model
     
