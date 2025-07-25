@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Mid-Term Thesis Presentation</title>
+
+
+	<link href="https://fonts.googleapis.com/css?family=Victor+Mono:400,700,400italic&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Geist+Mono:400,700,400italic&display=swap" rel="stylesheet">
+
+	<link href="https://fonts.googleapis.com/css?family=Nova+Mono:400,700,400italic&display=swap" rel="stylesheet">
+	<!-- this is very informal -->
+	<!-- <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display:400,700,400italic&display=swap" rel="stylesheet"> -->
+	<style>
+		:root {
+			--bg-color: #f3ead3;
+			--text-color:#000;
+
+			--rc-color:  #f1f4f7
+			--rc0-color: #eceff4;
+			--rc1-color: #dbdee9;
+			--rc2-color: #81a1c1;
+			--rc3-color: #d08770;
+			--rc4-color: #88c0d0;
+			--rc5-color: #a3be8c;
+			--rc6-color: #8fbcbb;
+			--rc7-color: #b48ead;
+			--rc8-color: #57a773;
+			--rc9-color: #8d94ba;
+			
+			--rcb-color:#000;
+			--rc-text-color:#fff;
+
+
+			--code-bg-color: #fff;
+			--code-text-color: #000;
+		}
+
+		body {
+			font-family: 'Victor Mono', monospace;
+			margin: 0;
+			background-color: var(--bg-color);
+			color: var(--text-color);
+		}
+
+		.remark-slide-container {
+			transition: none !important;
+			transform: translateY(0);
+			opacity: 1;
+		}
+
+
+		.remark-slide-number {
+			position: center;
+			left: 1em;           /* Move to the left */
+			bottom: 1em;         /* Adjust vertical position if needed */
+			right: auto;         /* Cancel default right alignment */
+			color: var(--text-color);         /* Optional: subtle color */
+			font-size: 0.5em;    /* Optional: scale */
+		}
+
+		.slide-to-prev {
+			animation: slidePrev 0.45s cubic-bezier(0.618, -0.6, 0.382, 1.618);
+		}
+		.slide-to-next {
+			animation: slideNext 0.45s cubic-bezier(0.618,-0.6, 0.382,1.618);
+		}
+
+		@keyframes slidePrev {
+			from { transform: translateY(100%); opacity: 0; }
+			to   { transform: translateY(0);    opacity: 1; }
+		}
+
+		@keyframes slideNext {
+			from { transform: translateY(-100%); opacity: 0; }
+			to   { transform: translateY(0);     opacity: 1; }
+		}
+
+
+		.opacityshudder {
+			animation: opacityshudder 0.4s linear 0s 2;
+		}
+
+		@keyframes .opacityshudder {
+			0%   { opacity: 1; }
+			20%  { opacity: 0.4; }
+			40%  { opacity: 0.8; }
+			60%  { opacity: 0.2; }
+			80%  { opacity: 0.9; }
+			100% { opacity: 1; }
+		}
+
+		.huerotate {
+			animation: huerotate 6s infinite linear;
+		}
+
+		@keyframes huerotate {
+			0%   { filter: hue-rotate(0deg); }
+			100% { filter: hue-rotate(360deg); }
+		}
+
+		.breathe {
+			animation: breathe 2.5s cubic-bezier(0.618, 0, 0.382, 1) infinite alternate;
+		}
+
+		@keyframes breathe {
+		0%, 100% { opacity: 0.4; }
+		50%   { opacity: 1; }
+		}
+
+		.remark-slide-content {
+			background-color: var(--bg-color);
+			padding: 0 !important; /* Remove default padding */
+			margin: 0;
+		}
+
+		.split-slide {
+			display: flex;
+			flex-direction: row;
+			height: 100vh !important;
+			width: 100%;
+		}
+
+		<!-- draw horizontal line -->
+		/* Horizontal divider container */
+		.divider {
+			width: 100%;
+			height: 8px;
+			background-color: black;
+			margin: 0.2em 0;
+		}
+
+		/* Colored text containers */
+		.rtext, .rtext h1, .rtext h2, .rtext h3 {
+			color: #f85552 !important;
+		}
+
+		.gtext, .gtext h1, .gtext h2, .gtext h3 {
+			color: #35a77c;
+		}
+
+		.btext, .btext h1, .btext h2, .btext h3 {
+			color: #3a94c5;
+		}
+
+		.ortext, .ortext h1, .ortext h2, .ortext h3 {
+			color: #f57d26;
+		}
+
+
+		blockquote {
+		border-left: 0.3em solid var(--text-color);
+		background-color: color-mix(in srgb, var(--bg-color), white 38%);
+		padding: 1em;
+		font-style: italic;
+		font-size: 0.6em;
+		color: --var(--text-color);
+		quotes: "\201C""\201D""\2018""\2019";
+		}
+
+
+
+	a:link {
+		color: orange;           /* Unvisited links */
+		text-decoration: underline;   /* Optional: removes underline */
+	}
+
+	a:visited {
+		color: gray;             /* Visited links */
+		text-decoration: underline;   /* Optional */
+	}
+
+	a:hover {
+		text-decoration: underline; /* Optional: show underline on hover */
+		color: darkorange;          /* Slightly darker on hover */
+	}
+
+
+	.lc {
+		display: flex;
+		background-color: var(--bg-color);
+		flex-direction: column;
+		padding: 0.5em;
+		min-width: 50%;
+		max-width: 65%;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.rc0 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: color-mix(in srgb, var(--bg-color), white 38%);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		flex : 1;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.rc1 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--rc1-color);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		flex : 1;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.rc2 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--rc2-color);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		flex : 1;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+
+	.rc3 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--rc3-color);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		flex : 1;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.rc4 {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--rc4-color);
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		flex : 1;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+	.rcb {
+		border-radius: 8px 0px 0px 8px;
+		background-color: var(--rcb-color);
+		color: white;
+		padding: 0.5em;
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		box-sizing: border-box;
+		align-items: left;
+	}
+
+
+	.remark-code, .remark-inline-code {
+		background-color: var(--code-bg-color);
+		color: var(--code-text-color);
+		border-radius: 2px;
+		font-family: 'Geist Mono', monospace;
+		line-height: 1.4em;
+		font-size: 0.65em;
+		max-width: 95%;
+	}
+
+	video {
+		border: 1px solid #484848;
+		border-radius: 8px;
+	}
+
+
+	</style>
+</head>
+<body>
+<!-- start here... -->
+	<textarea id="source">
+
+class: center, middle
+# Mid-Term Presentation
+> -Adi
+
+
+[Github](https://github.com/adishourya/SelfcompressingDepthWiseAttn)
+[Experiments](https://www.comet.com/adishourya/convolution-compressing/view/new/panels)
+
+
+---
+class: split-slide
+.lc[
+# Agenda
+1. Design Choices in Depth Wise Convolution and linear attention
+	- Mistakes in DWConv (previous week)
+	- Fixes
+	- choices to make convolution efficient `num_groups`
+	- choices to make quantizable linear attention.
+2. Dataset Imagenet [request still pending...]
+]
+
+---
+class: split-slide
+.lc[
+# Their Implementation 
+#### cost of DWBlock
+- Exapand Conv maps `num_projection :- > num_projection * expand_ratio`
+- so we need `num_projections * expand_ratio,num_projections, 1 ,1 `
+- kernel size = 1
+
+- dw maps `num_projection * num_projection :- > num_projection * expand_ratio`
+- we need `num_projection * num_projection , 1 , 3 , 3`
+- kernel size = 3
+
+- pointwise maps `num_projection*expand_ratio :-> num_projection`
+- we need `num_projection, num_projection*expand_ratio, 1, 1`
+- kernel size = 1
+
+]
+.rc3[
+	### Transformer Block
+<div class="mermaid">
+graph TD
+I[Img] --> A[Proj] -->
+B[Exapnd] -->
+C[DWConv] -->
+D[PointWise] -->
+E[Linear Attention]
+</div>
+]
+
+
+---
+
+class: split-slide
+.lc[
+# Our Implementation 
+#### cost of DWBlock (all kernels_size = 3)
+- Exapand Conv maps `num_projection :- > num_projection * expand_ratio`
+- so we need `num_projections * expand_ratio,num_projections, 3 ,3 `
+
+- dw maps `num_projection * num_projection :- > num_projection * expand_ratio`
+- we need `num_projection * num_projection , 1 , 3 , 3`
+
+- pointwise maps `num_projection*expand_ratio :-> num_projection`
+- we need `num_projection, num_projection*expand_ratio, 3, 3`
+
+]
+.rc3[
+	### Transformer Block
+<div class="mermaid">
+graph TD
+I[Img] --> A[Proj] -->
+B[Exapnd] -->
+U[Upscaling] -->
+C[DWConv] -->
+D[PointWise] -->
+E[Linear Attention]
+</div>
+]
+
+
+---
+
+class:center,middle
+# End of slides
+
+<!-- slide stuff -->
+</textarea>
+
+<!-- Load remark.js -->
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+
+<!-- Remark config -->
+<script>
+	var slideshow = remark.create({
+		navigation:{scroll:true,touch:true,click:false},
+		ratio:"16:9",
+		slideNumberFormat: function (current, total) {
+			return "["+current+"/"+total+"]"; },
+		highlightLanguage: 'python',
+		highlightStyle:"sunburst",
+		highlightLines: true,
+	});
+</script>
+
+<script>
+	let direction = 'right'; // default direction
+
+	document.addEventListener('keydown', function (e) {
+		if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+			direction = 'right';
+		} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+			direction = 'left';
+		}
+	});
+
+	// Touch input
+	let touchStartX = 0;
+	let touchEndX = 0;
+
+	document.addEventListener('touchstart', function (e) {
+		touchStartX = e.changedTouches[0].screenX;
+	});
+
+	document.addEventListener('touchend', function (e) {
+		touchEndX = e.changedTouches[0].screenX;
+		handleGesture();
+	});
+
+	function handleGesture() {
+		const delta = touchEndX - touchStartX;
+		if (Math.abs(delta) > 30) { // minimum swipe distance
+			if (delta < 0) {
+				direction = 'right'; // swipe left = next
+			} else {
+				direction = 'left';  // swipe right = previous
+			}
+		}
+	}
+
+	slideshow.on('afterShowSlide', function () {
+		const slide = document.querySelector('.remark-visible');
+		if (!slide) return;
+
+		// Remove both to reset state
+		slide.classList.remove('slide-to-next', 'slide-to-prev');
+
+		// Force reflow to flush previous animation
+		void slide.offsetWidth;
+
+		// Add animation based on keypress direction
+		slide.classList.add(direction === 'right' ? 'slide-to-prev' : 'slide-to-next');
+	});
+</script>
+
+<script>
+var slideElements
+
+function getElementForSlide(slide) {
+	slideElements = slideElements || document.querySelectorAll('.remark-slide')
+	return slideElements[slide.getSlideIndex()]
+}
+
+slideshow.on('showSlide', function (slide) {
+	Array.from(getElementForSlide(slide).querySelectorAll('video')).forEach(function (vid) {
+		vid.loop = true
+		vid.currentTime = 0
+		vid.play()
+	})
+})
+
+slideshow.on('hideSlide', function (slide) {
+	Array.from(getElementForSlide(slide).querySelectorAll('video')).forEach(function (vid) {
+		vid.pause()
+	})
+})
+</script>
+
+
+<script>
+var slideElements;
+
+function getElementForSlide(slide) {
+	slideElements = slideElements || document.querySelectorAll('.remark-slide');
+	return slideElements[slide.getSlideIndex()];
+}
+
+slideshow.on('showSlide', function (slide) {
+	const slideEl = getElementForSlide(slide);
+
+	// video handling (optional)
+	Array.from(slideEl.querySelectorAll('video')).forEach(function (vid) {
+		vid.loop = true;
+		vid.currentTime = 0;
+		vid.play();
+	});
+
+	// mermaid re-init
+	const mermaidBlocks = slideEl.querySelectorAll('.mermaid');
+	mermaidBlocks.forEach(block => {
+		// prevent re-rendering already rendered diagrams
+		if (!block.classList.contains('rendered')) {
+			// render this block only
+			mermaid.init(undefined, block);
+			block.classList.add('rendered'); // mark as rendered
+		}
+	});
+});
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+	startOnLoad: false,
+	theme: 'dark',
+	themeVariables: {
+		fontFamily: 'Victor Mono',
+		fontSize: '0.6em',
+		primaryColor: '#000',
+		lineColor: '#000',
+		edgeLabelBackground: '#000000',
+		nodeBorder: '#000',
+		textColor: '#fff',
+	},
+	flowchart: {
+		curve: 'linear',
+		useMaxWidth: false,
+		htmlLabels: true,
+		nodeSpacing: 15,
+		rankSpacing: 15,
+		minLen: 1
+	}
+});
+</script>
+
+</body>
+</html>

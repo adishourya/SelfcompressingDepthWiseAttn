@@ -1,22 +1,19 @@
 # keep comet ml import above torch [comet's documentation]
-import os
-os.getenv("comet_api")
 
+import os # mostly to get comet api key
 import math
-
 import datetime
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-os.makedirs("assets", exist_ok=True)
-
 from comet_ml import start , ExperimentConfig
 from comet_ml.integration.pytorch import log_model,watch
-
 
 import torch
 from qmodules.QConv import Qconv, QconvT
 from qmodules.QLinear import QlinearMLP
 from qmodules.QEagerLinAttn import QEagerLinearAttention
 from tqdm import tqdm
+
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+os.makedirs("assets", exist_ok=True)
 
 class QTrainer:
     """
@@ -71,8 +68,9 @@ class QTrainer:
         self.scaler = torch.amp.GradScaler()
         # no need to do to dtype
         self.model = self.model.to(self.dtype)
-        if self.to_compile:
-            self.model = torch.compile(self.model)
+        self.model = torch.compile(self.model) if self.to_compile else self.model
+        # if self.to_compile:
+        #     self.model = torch.compile(self.model)
 
         # dont try it on cpu!
         self.model.to("cuda")
@@ -82,7 +80,6 @@ class QTrainer:
         self.track_activedualbasis = []
         self.track_loss = []
 
-    
         self.optim = torch.optim.AdamW(
             self.model.parameters(),
             weight_decay=1e-3)
@@ -93,7 +90,10 @@ class QTrainer:
 
         self.tot_init = sum(p.numel() for group in self.optim.param_groups for p in group['params'] if p.requires_grad)
         self.qtot_init = self._qlayersize() 
-        self.tot_qparams = torch.sum(torch.tensor([p_weight.numel() for p,p_weight in self.model.named_parameters() if "_bit" in p]))
+        self.tot_qparams = torch.sum(torch.tensor([p_weight.numel()
+                                                  for p,p_weight in self.model.named_parameters()
+                                                  if "_bit" in p]
+                                              ))
         self.model_fbits = self.__model_fbits() 
     
         print(f"Total Parameters {self.tot_init=}")
@@ -101,15 +101,13 @@ class QTrainer:
         print(f"of which compression are :{self.tot_qparams=}")
         print(f"compression factor at init {self.gamma * self._qlayersize()}")
         print(f"Model Bits: {self.model_fbits=}")
-        print(f"Model Qconvs: {self._activekernelscount()=}")
+        print(f"Model Qconvs: {self._activeModuleCount(Qconv)=}")
 
         if self.logging:
             self.experiment.log_metric(name="Init Parameters", value=self.tot_init)
             self.experiment.log_metric(name="Total Qparams ", value=self.tot_qparams)
             self.experiment.log_metric(name="Total Layersize ", value=self.qtot_init)
             self.experiment.log_metric(name="Total Fbits", value=self.model_fbits)
-
-
 
     def _setup_logging(self):
         experiment_config = ExperimentConfig(
@@ -118,8 +116,6 @@ class QTrainer:
             log_env_disk=False,
             auto_histogram_epoch_rate=10,# default 1 
             auto_histogram_weight_logging=True,
-            auto_histogram_gradient_logging=False,
-            auto_histogram_activation_logging=False,
         )
         self.experiment = start(
           api_key=os.getenv("comet_api"),
@@ -135,12 +131,12 @@ class QTrainer:
 
     def _qlayersize(self):
         size = torch.sum(
-                torch.tensor([layer.size_layer() 
-                              for layer in self.model.modules() if isinstance(layer,self.model._targetModules())
+                torch.tensor([
+                             layer.size_layer() 
+                              for layer in self.model.modules()
+                              if isinstance(layer,self.model._targetModules())
                               ])
                 )
-        # size_conv = torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,Qconv)]))
-        # size_lin =  torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
         return size
 
 
@@ -149,12 +145,13 @@ class QTrainer:
         tracks 2^(2b -1) of our model
         """
         size = torch.sum(
-                torch.tensor([layer._fakebits() 
-                              for layer in self.model.modules() if isinstance(layer,self.model._targetModules())
-                              ])
+                torch.tensor([
+                             layer._fakebits() 
+                              for layer in self.model.modules()
+                              if isinstance(layer,self.model._targetModules())
+                              ]
+                              )
                 )
-        # size_conv = torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,Qconv)]))
-        # size_lin =  torch.sum(torch.tensor([layer.size_layer() for layer in self.model.modules() if isinstance(layer,QlinearMLP)]))
         return size
 
 
@@ -167,47 +164,22 @@ class QTrainer:
         return gamma_start + (gamma_end - gamma_start) * progress
 
 
-
-    def _activekernelscount(self):
-        kernel_counts = dict()
+    def _activeModuleCount(self,module):
+        """
+            Qconv for active conv
+            QconvT for active Upscalers
+            QEagerLinearAttention for attn heads
+            QlinearMLP for active dual of basis in MLP
+        """
+        module_counts = dict()
         for name,layer in self.model.named_modules():
-            if isinstance(layer,Qconv):
+            if isinstance(layer,module):
                 depths = torch.relu(layer.depth_bit)
                 # count nnz depth bits
                 count =torch.sum(torch.where(depths>0,1,0)).item()
-                kernel_counts[name] = count
-        return kernel_counts
+                module_counts[name] = count
+        return module_counts
 
-    def _activeUpscalers(self):
-        kernel_counts = dict()
-        for name,layer in self.model.named_modules():
-            if isinstance(layer,QconvT):
-                depths = torch.relu(layer.depth_bit)
-                # count nnz depth bits
-                count =torch.sum(torch.where(depths>0,1,0)).item()
-                kernel_counts[name] = count
-        return kernel_counts
-
-
-    def _activeLinearDualbasis(self):
-        row_counts = dict()
-        for name,layer in self.model.named_modules():
-            if isinstance(layer,QlinearMLP):
-                depths = torch.relu(layer.depth_bit)
-                # count nnz depth bits
-                count = torch.sum(torch.where(depths>0,1,0)).item()
-                row_counts[name] = count
-        return row_counts
-
-    def _activeAttnHeads(self):
-        head_counts = dict()
-        for name,layer in self.model.named_modules():
-            if isinstance(layer,QEagerLinearAttention ):
-                depths = torch.relu(layer.depth_bit.view(-1))
-                # count nnz depth bits
-                count =torch.sum(torch.where(depths>0,1,0)).item()
-                head_counts[name] = count
-        return head_counts
 
     def _save_checkpoint(self):
         print("Saving")
@@ -251,7 +223,7 @@ class QTrainer:
         start_time = torch.cuda.Event(enable_timing=True)
         end_time = torch.cuda.Event(enable_timing=True)
         torch.cuda.synchronize()
-        start_time.record()
+        start_time.record(torch.cuda.current_stream())
         for batch_img, batch_label in self.eval_loader:
             batch_img = batch_img.to("cuda").to(self.dtype)
             batch_label = batch_label.to("cuda")
@@ -261,7 +233,7 @@ class QTrainer:
             total_correct += (prediction==batch_label).sum().item()
             total_samples += batch_label.size(0)
 
-        end_time.record()
+        end_time.record(torch.cuda.current_stream())
         torch.cuda.synchronize()
         elapsed_time_sec = start_time.elapsed_time(end_time)/1000
         b,c,h,w = batch_img.shape
@@ -305,21 +277,23 @@ class QTrainer:
                 # progress bar update [batch count] 
                 batch_count +=1
                 if batch_count % self.pbar_track_freq == 0:
-                    activekernels = self._activekernelscount()
-                    activeUpscalers = self._activeUpscalers()
-                    activeDuals = self._activeLinearDualbasis()
-                    activeHeads = self._activeAttnHeads()
+                    # currently this happens in 0(4n) we can do it O(1n)
+                    # but this is ok.. looping over named parameters is not costly
+                    activekernels = self._activeModuleCount(Qconv)
+                    activeUpscalers = self._activeModuleCount(QconvT)
+                    activeDuals = self._activeModuleCount(QlinearMLP)
+                    activeHeads = self._activeModuleCount(QEagerLinearAttention)
                     pbar_epoch.set_postfix(
                         loss=loss.item(),
-                        activekernels = activekernels.values(),
-                        activeDuals = activeDuals.values(),
+                        activekernels=activekernels.values(),
+                        activeDuals=activeDuals.values(),
                         decay=bit_decay.item(),
                     )
                     self._track(loss=loss.item(),
                                 activekernels=activekernels,
                                 activeUpscalers=activeUpscalers,
-                                activeDuals = activeDuals,
-                                activeHeads = activeHeads,
+                                activeDuals=activeDuals,
+                                activeHeads=activeHeads,
                                 bit_decay=bit_decay.item(),
                                 epoch=epoch,gamma=gamma_factor
                                 )
