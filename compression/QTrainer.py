@@ -263,12 +263,17 @@ class QTrainer:
 
         end_time.record()
         torch.cuda.synchronize()
-        elapsed_time = start_time.elapsed_time(end_time)
+        elapsed_time_sec = start_time.elapsed_time(end_time)/1000
+        b,c,h,w = batch_img.shape
+        img_bytes = c * h * w
+        total_bytes = (len(self.eval_loader)*self.tot_init + total_samples*img_bytes) * 4
+        bandwidth = total_bytes/1e9/elapsed_time_sec
+        latency = total_samples/elapsed_time_sec
 
         model_bits = self.__model_fbits()
         avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
-        print(total_correct,avg_accuracy,total_samples)
-        return avg_loss, avg_accuracy, model_bits, total_samples/elapsed_time
+        print(total_correct,avg_accuracy,total_samples,bandwidth)
+        return avg_loss, avg_accuracy, model_bits, latency, bandwidth
 
     # @torch.compile # this will not work if you want to track modules states in dict and such.. dynamo error. compile model instead.
     def train(self,num_epochs=10):
@@ -322,7 +327,7 @@ class QTrainer:
             # eval tracking
             if epoch % self.eval_track_freq == 0:
                 self.model.eval()
-                avg_loss , avg_accuracy, model_fbits, throughput = self.eval_run()
+                avg_loss , avg_accuracy, model_fbits, throughput,bandwidth = self.eval_run()
                 print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {model_fbits=} {throughput=}")
                 if self.logging:
                     self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
@@ -330,6 +335,7 @@ class QTrainer:
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
                     self.experiment.log_metric(name="Model Fbits", value=model_fbits, step=epoch)
                     self.experiment.log_metric(name="Throughput", value=throughput, step=epoch)
+                    self.experiment.log_metric(name="Bandwidth(GB/s)", value=bandwidth, step=epoch)
         # finishing up
         checkpoint = self._save_checkpoint()
         if self.logging:

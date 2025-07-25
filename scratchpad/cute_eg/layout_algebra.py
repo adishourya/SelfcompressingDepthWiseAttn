@@ -4,7 +4,6 @@
 import cutlass
 import cutlass.cute as cute
 from vis_layout import visualize_layout
-
 import torch
 
 
