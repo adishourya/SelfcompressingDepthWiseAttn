@@ -1,6 +1,7 @@
 einops
 numpy
 matplotlib
+ptflops
 comet_ml
 tqdm
 

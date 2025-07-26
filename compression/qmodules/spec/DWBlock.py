@@ -12,27 +12,42 @@ class DWBlock(torch.nn.Module):
 
 
         self.expand = torch.nn.Sequential(
-            Qconv(in_channels, expanded_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
+            Qconv(in_channels, expanded_channels,
+                  kernel_size=kernel_size,
+                  padding=kernel_size // 2,
+                  bias=False),
             #`torch.nn.BatchNorm2d(expanded_channels),
             torch.nn.GELU(),
         )
 
 
-        self.shuffle_upscaling = torch.nn.PixelShuffle(upscale_factor=upscaling_factor)
+        # self.shuffle_upscaling = torch.nn.PixelShuffle(upscale_factor=upscaling_factor)
         self.learned_upscaling = torch.nn.Sequential(
-            QconvT(expanded_channels,upscaled_channels,kernel_size=kernel_size,stride=upscaling_factor,padding=kernel_size//2),
+            QconvT(expanded_channels,upscaled_channels,
+                   kernel_size=kernel_size,
+                   stride=upscaling_factor,
+                   padding=kernel_size//2),
             torch.nn.GELU(),
         )
 
         self.depthwise = torch.nn.Sequential(
-            Qconv(upscaled_channels, upscaled_channels, kernel_size=kernel_size, stride=kernel_size//2,
-                      padding=1, groups=upscaled_channels, bias=False),
+            Qconv(upscaled_channels, upscaled_channels,
+                  kernel_size=kernel_size,
+                  stride=kernel_size//2,
+                  padding=1,
+                  groups=upscaled_channels,
+                  bias=False),
             # torch.nn.BatchNorm2d(upscaled_channels),
             torch.nn.GELU(),
         )
 
         self.project = torch.nn.Sequential(
-            Qconv(upscaled_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2,stride=2, bias=False),
+            Qconv(upscaled_channels, out_channels,
+                  kernel_size=kernel_size,
+                  padding=kernel_size // 2,
+                  stride=2,
+                  bias=False),
+            
             torch.nn.BatchNorm2d(out_channels),
         )
 
