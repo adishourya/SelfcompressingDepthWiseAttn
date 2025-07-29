@@ -238,15 +238,15 @@ class QTrainer:
         total_correct = 0
         total_samples = 0
 
+        torch.cuda.synchronize()
         start_time = torch.cuda.Event(enable_timing=True)
         end_time = torch.cuda.Event(enable_timing=True)
-        torch.cuda.synchronize()
         start_time.record(torch.cuda.current_stream())
         for batch_img, batch_label in self.eval_loader:
             batch_img = batch_img.to("cuda").to(self.dtype)
             batch_label = batch_label.to("cuda")
             out = self.model(batch_img)
-            total_loss += torch.nn.functional.cross_entropy(input=out,target=batch_label)
+            total_loss += torch.nn.functional.cross_entropy(input=out,target=batch_label,reduction="sum")
             prediction = torch.argmax(out,dim=1)
             total_correct += (prediction==batch_label).sum().item()
             total_samples += batch_label.size(0)

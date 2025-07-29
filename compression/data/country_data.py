@@ -25,6 +25,10 @@ def get_dataloader(batch_size=256):
     country_train = datasets.Country211(root=data_dir,split="train",download=True,transform=transform)
     country_valid= datasets.Country211(root=data_dir,split="valid",download=True,transform=transform)
     country_test= datasets.Country211(root=data_dir,split="test",download=True,transform=transform)
+
+    # num_classes = len(country_train.classes)
+    # print(f"Number of classes: {num_classes}") # 211
+    
     # then make
     train_loader = DataLoader(country_train, batch_size=batch_size, shuffle=True, num_workers=2)
     eval_loader = DataLoader(country_valid, batch_size=batch_size, shuffle=True, num_workers=2)

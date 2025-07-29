@@ -26,22 +26,34 @@ class TransformerBlock(torch.nn.Module):
 
 
 class EagerDWLin(torch.nn.Module):
-    def __init__(self, projection_out=16,num_heads=16, head_dim=32,repeat_transformer=4):
+    def __init__(self, projection_out=16,num_heads=16, head_dim=32,repeat_transformer=4,num_classes=10):
         super().__init__()
         self.pe_out = projection_out
         self.num_heads = num_heads
         self.head_dim = head_dim
 
-        self.pe = ProjectionEmbedding(img_channels=1,out_channels=self.pe_out,patch_size=2)
+        # self.pe = ProjectionEmbedding(img_channels=1,out_channels=self.pe_out,patch_size=2)
+        self.pe = ProjectionEmbedding(img_channels=3,out_channels=self.pe_out,patch_size=2)
         self.transformer = torch.nn.Sequential(*[TransformerBlock(self.pe_out, self.num_heads, self.head_dim) for _ in range(repeat_transformer)])
 
+        # self.mlp_block_mnist = torch.nn.Sequential(
+        #         QlinearMLP(self.pe_out * 15 * 15,256), # mnist
+        #         QlinearMLP(256,64),
+        #         QlinearMLP(64,num_classes)
+        #         )
 
+        # r224
+        # self.mlp_block = torch.nn.Sequential(
+        #         QlinearMLP(self.pe_out * 113 * 113,512), # country211 r224
+        #         QlinearMLP(512,256),
+        #         QlinearMLP(256,num_classes)
+        #         )
         self.mlp_block = torch.nn.Sequential(
-                QlinearMLP(self.pe_out * 15 * 15,256),
-                QlinearMLP(256,64),
-                QlinearMLP(64,10)
-                )
-        ...
+            QlinearMLP(self.pe_out,256),
+            torch.nn.GELU(),
+            QlinearMLP(256,num_classes)
+        )
+        pass
 
     @staticmethod
     def stop_for_inspection(out,path:str):
@@ -64,7 +76,10 @@ class EagerDWLin(torch.nn.Module):
 
         #self.stop_for_inspection(out,"after_1_transformer.png")
 
-        out = torch.flatten(out,start_dim=1)
+        # no flattening...
+        # out = torch.flatten(out,start_dim=1)
+        # instead i saw:
+        out = out.mean(dim=(2, 3))  # Global average pool on height and width
         out = self.mlp_block(out)
         return out
 

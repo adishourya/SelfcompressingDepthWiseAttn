@@ -3,14 +3,20 @@ import cutlass.cute as cute
 assert torch.cuda.is_available() , "Not optimized for any other backend"
 print(torch.__version__)
 
+from einops._torch_specific import allow_ops_in_compiled_graph
+allow_ops_in_compiled_graph()
+
 data_config = dict(
         train_split = 0.75,
         eval_split = 0.1,
         test_split = 0.15,
         batch_size = 256
 )
-from data.mnist_data import get_dataloader
-train_loader,eval_loader,_ = get_dataloader(**data_config)
+from data.mnist_data import get_dataloader as mnist_loader
+from data.country_data import get_dataloader as country_loader
+
+# train_loader,eval_loader,_ = mnist_loader(**data_config)
+train_loader,eval_loader,_ = country_loader(batch_size=32)
 
 
 from qmodules.Models.ConvModel import QconvModel
@@ -20,7 +26,7 @@ from QTrainer import QTrainer
 
 train_config = dict(
     # model = QPureconvModel(), 
-    model = EagerDWLin(num_heads=16,head_dim=16,repeat_transformer=2), 
+    model = EagerDWLin(num_heads=16,head_dim=16,repeat_transformer=2,num_classes=211), 
     # model = QconvModel(),
     train_loader = train_loader,
     eval_loader = eval_loader,
@@ -38,6 +44,6 @@ train_config = dict(
 
 if __name__ == "__main__":
     qtrainer = QTrainer(**train_config)
-    #qtrainer.train(1)
+    qtrainer.train(1)
     # qtrainer.train(1000)
-    qtrainer.train(100)
+    # qtrainer.train(100)
