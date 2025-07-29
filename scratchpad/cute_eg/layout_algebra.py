@@ -162,12 +162,17 @@ def example_cordinate_mapping():
 
 @cute.jit
 def example_composition_layouts():
-    A = cute.make_layout(shape=(6,2),stride=(100,5))
-    B = cute.make_layout(shape=(2,3),stride=(3,1))
+    # A = cute.make_layout(shape=(6,2),stride=(100,5))
+    # B = cute.make_layout(shape=(2,3),stride=(1,2))
+    A = cute.make_layout(shape=((4,2),),
+                         stride=((1,10),))
+    visualize_layout(A)
+
 
     # A = cute.make_layout(shape=(20,1),stride=(10,1))
     # B = cute.make_layout(shape=(4,3),stride=(3,1))
-    AoB = cute.composition(A,B)
+
+    # AoB = cute.composition(A,B)
     # visualize_layout(B)
     # visualize_layout(A)
     # visualize_layout(AoB)
@@ -177,14 +182,14 @@ def example_composition_layouts():
     # B(one_d) also returns one_d
     # then finally A(one_d) would be R(one_d)
 
-    a_d0, a_d1 = A.shape
-    a_s0, a_s1 = A.stride
-    b_d0,b_d1 = B.shape
-    b_s0,b_s1 = B.stride
+    # a_d0, a_d1 = A.shape
+    # a_s0, a_s1 = A.stride
+    # b_d0,b_d1 = B.shape
+    # b_s0,b_s1 = B.stride
 
     @cute.jit
     def get_idx():
-        for i in range(12):
+        for i in range(b_d0 * b_d1):
             one_d =i
             b_i = one_d % b_d0
             one_d = one_d // b_d0
@@ -208,7 +213,8 @@ def example_composition_layouts():
             # cute.printf((b_i,b_j),b_out,(a_i,a_j),a_out)
             # cute.printf((a_our,a_out), (b_our,b_out))
 
-    get_idx()
+    # get_idx()
+    pass
 
 @cute.jit
 def example_composition_layout2():
@@ -297,10 +303,10 @@ if __name__ == "__main__":
     # example_matrix_layout()
     # example_cordinate_mapping()
     # example_coalescing_layouts()
-    # example_composition_layouts()
+    example_composition_layouts()
     # example_composition_layout2()
     # example_bymode_composition()
     # example_logical_divide()
-    example_complement()
+    # example_complement()
 
     pass
