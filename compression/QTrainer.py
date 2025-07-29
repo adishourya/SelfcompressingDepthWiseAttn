@@ -1,5 +1,6 @@
 # keep comet ml import above torch [comet's documentation]
 
+from functools import total_ordering
 import os # mostly to get comet api key
 import math
 import datetime
@@ -235,7 +236,8 @@ class QTrainer:
         # double sure !!
         self.model.eval()
         total_loss = 0
-        total_correct = 0
+        top1_correct = 0
+        top5_correct= 0
         total_samples = 0
 
         torch.cuda.synchronize()
@@ -247,8 +249,10 @@ class QTrainer:
             batch_label = batch_label.to("cuda")
             out = self.model(batch_img)
             total_loss += torch.nn.functional.cross_entropy(input=out,target=batch_label,reduction="sum")
-            prediction = torch.argmax(out,dim=1)
-            total_correct += (prediction==batch_label).sum().item()
+            top1 = torch.argmax(out,dim=1)
+            top1_correct += (top1==batch_label).sum().item()
+            top5 = torch.topk(out, k=5, dim=1).indices
+            top5_correct += torch.where(top5 == batch_label.unsqueeze(1), 1, 0).sum(dim=1).sum().item()
             total_samples += batch_label.size(0)
 
         end_time.record(torch.cuda.current_stream())
@@ -258,9 +262,9 @@ class QTrainer:
         latency = total_samples/elapsed_time_sec
 
         model_bits = self.__model_fbits()
-        avg_loss , avg_accuracy = total_loss/total_samples , total_correct/total_samples
+        avg_loss , avg_top1,avg_top5 = total_loss/total_samples , top1_correct/total_samples, top5_correct/total_samples
    
-        return avg_loss, avg_accuracy, model_bits, latency
+        return avg_loss, avg_top1,avg_top5, model_bits, latency
 
     # @torch.compile # this will not work if you want to track modules states in dict and such.. dynamo error. compile model instead.
     def train(self,num_epochs=10):
@@ -316,11 +320,12 @@ class QTrainer:
             # eval tracking
             if epoch % self.eval_track_freq == 0:
                 self.model.eval()
-                avg_loss , avg_accuracy, model_fbits, throughput= self.eval_run()
-                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=} {model_fbits=} {throughput=}")
+                avg_loss , avg_accuracy,avg_top5_accuracy, model_fbits, throughput= self.eval_run()
+                print(f"Eval Run Stats {epoch=}, {avg_loss=}, {avg_accuracy=:.3f},{avg_top5_accuracy=:.3f} {model_fbits=} {throughput=:.3f}")
                 if self.logging:
                     self.experiment.log_metric(name="Eval loss", value=avg_loss, step=epoch)
                     self.experiment.log_metric(name="Eval Accuracy", value=avg_accuracy, step=epoch)
+                    self.experiment.log_metric(name="Eval Top5 Accuracy", value=avg_top5_accuracy, step=epoch)
                     self.experiment.log_metric(name="Model Fbits", value=model_fbits, step=epoch)
                     self.experiment.log_metric(name="Throughput", value=throughput, step=epoch)
         # finishing up

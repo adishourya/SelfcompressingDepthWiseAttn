@@ -79,7 +79,8 @@ class MultiHeadLinearAttention(torch.nn.Module):
     def __init__(self, in_channels, heads=16, dim_per_head=32):
         super().__init__()
         self.attn = QEagerLinearAttention(in_channels, heads, dim_per_head)
-        self.bn = torch.nn.BatchNorm2d(in_channels)
+        # self.bn = torch.nn.BatchNorm2d(in_channels)
+        self.ln = torch.nn.GroupNorm(1,in_channels)
 
     def forward(self, x):
         B, C, H, W = x.shape
@@ -93,4 +94,4 @@ class MultiHeadLinearAttention(torch.nn.Module):
 
         # out proj.
         out = einops.rearrange(out, 'b (h w) c -> b c h w', h=H, w=W)
-        return self.bn(out)
+        return self.ln(out)

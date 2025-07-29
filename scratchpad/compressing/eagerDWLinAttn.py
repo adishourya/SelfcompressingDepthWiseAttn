@@ -414,6 +414,7 @@ def _(einops, torch):
             self.out_proj = torch.nn.Linear(self.total_dim, in_channels, bias=False)
 
             self.bn = torch.nn.BatchNorm2d(in_channels)
+            self.ln = torch.nn.GroupNorm(1,in_channels)
 
         def forward(self, x):
             B, C, H, W = x.shape
@@ -439,7 +440,8 @@ def _(einops, torch):
             out = einops.rearrange(out, 'b (h w) c -> b c h w', h=H, w=W)
 
             # BatchNorm expects (B,C,H,W)
-            out = self.bn(out)
+            out = self.ln(out)
+            # out = self.bn(out)
 
             return out
 

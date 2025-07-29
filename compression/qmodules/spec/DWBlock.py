@@ -16,7 +16,6 @@ class DWBlock(torch.nn.Module):
                   kernel_size=kernel_size,
                   padding=kernel_size // 2,
                   bias=False),
-            #`torch.nn.BatchNorm2d(expanded_channels),
             torch.nn.GELU(),
         )
 
@@ -37,7 +36,6 @@ class DWBlock(torch.nn.Module):
                   padding=1,
                   groups=upscaled_channels,
                   bias=False),
-            # torch.nn.BatchNorm2d(upscaled_channels),
             torch.nn.GELU(),
         )
 
@@ -48,7 +46,8 @@ class DWBlock(torch.nn.Module):
                   stride=2,
                   bias=False),
             
-            torch.nn.BatchNorm2d(out_channels),
+            # torch.nn.BatchNorm2d(out_channels),
+            torch.nn.GroupNorm(1,out_channels)
         )
 
         #self.use_residual = (in_channels == out_channels and stride == 1)

@@ -3,6 +3,7 @@ import cutlass.cute as cute
 assert torch.cuda.is_available() , "Not optimized for any other backend"
 print(torch.__version__)
 
+# this should be done automatically from pytorch >=2.5
 from einops._torch_specific import allow_ops_in_compiled_graph
 allow_ops_in_compiled_graph()
 
@@ -15,8 +16,8 @@ data_config = dict(
 from data.mnist_data import get_dataloader as mnist_loader
 from data.country_data import get_dataloader as country_loader
 
-# train_loader,eval_loader,_ = mnist_loader(**data_config)
-train_loader,eval_loader,_ = country_loader(batch_size=32)
+train_loader,eval_loader,_ = mnist_loader(**data_config)
+# train_loader,eval_loader,_ = country_loader(batch_size=32)
 
 
 from qmodules.Models.ConvModel import QconvModel
@@ -26,7 +27,8 @@ from QTrainer import QTrainer
 
 train_config = dict(
     # model = QPureconvModel(), 
-    model = EagerDWLin(num_heads=16,head_dim=16,repeat_transformer=2,num_classes=211), 
+    model = EagerDWLin(img_channels=1,num_heads=16,head_dim=16,repeat_transformer=10,num_classes=10), 
+    # model = EagerDWLin(img_channels=1,num_heads=16,head_dim=16,repeat_transformer=18,num_classes=10), 
     # model = QconvModel(),
     train_loader = train_loader,
     eval_loader = eval_loader,
@@ -38,12 +40,13 @@ train_config = dict(
     eval_track_freq= 5, # Every xth epoch does an Eval Run 
     logging=True, # comet ml tracking 
     comet_username="adishourya",
-    tag="convModel",
+    tag="DWAttn",
     project_name="convolution_compressing"
 )
 
 if __name__ == "__main__":
     qtrainer = QTrainer(**train_config)
-    qtrainer.train(1)
+    # qtrainer.train(1)
+    qtrainer.train(20)
     # qtrainer.train(1000)
     # qtrainer.train(100)
