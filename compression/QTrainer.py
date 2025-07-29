@@ -304,8 +304,9 @@ class QTrainer:
                     activeHeads = self._activeModuleCount(QEagerLinearAttention)
                     pbar_epoch.set_postfix(
                         loss=loss.item(),
-                        activekernels=activekernels.values(),
-                        activeDuals=activeDuals.values(),
+                        convs=sum(activekernels.values()),
+                        lins=sum(activeDuals.values()),
+                        heads = sum(activeHeads.values())
                         decay=bit_decay.item(),
                     )
                     self._track(loss=loss.item(),
