@@ -28,7 +28,11 @@ from QTrainer import QTrainer
 train_config = dict(
     # model = QPureconvModel(), 
     # model = EagerDWLin(img_channels=1,num_heads=16,head_dim=16,repeat_transformer=10,num_classes=10), 
-    model = EagerDWLin(img_channels=3,num_heads=16,head_dim=16,repeat_transformer=10,num_classes=211), 
+    model = EagerDWLin(img_channels=3,
+                       num_heads=16,
+                       head_dim=16,
+                       repeat_transformer=10,
+                       num_classes=211), 
     # model = QconvModel(),
     train_loader = train_loader,
     eval_loader = eval_loader,

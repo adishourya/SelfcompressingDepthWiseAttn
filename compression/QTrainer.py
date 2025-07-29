@@ -306,7 +306,7 @@ class QTrainer:
                         loss=loss.item(),
                         convs=sum(activekernels.values()),
                         lins=sum(activeDuals.values()),
-                        heads = sum(activeHeads.values())
+                        heads = sum(activeHeads.values()),
                         decay=bit_decay.item(),
                     )
                     self._track(loss=loss.item(),
