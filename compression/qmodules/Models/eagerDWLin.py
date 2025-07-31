@@ -1,4 +1,5 @@
 import torch
+from compression.utils import next_nearest32
 from qmodules.QConv import Qconv, QconvT
 from qmodules.QLinear import QlinearMLP
 from qmodules.spec.DWBlock import DWBlock
@@ -37,24 +38,12 @@ class EagerDWLin(torch.nn.Module):
         self.pe = ProjectionEmbedding(img_channels=img_channels,out_channels=self.pe_out,patch_size=2)
         self.transformer = torch.nn.Sequential(*[TransformerBlock(self.pe_out, self.num_heads, self.head_dim) for _ in range(repeat_transformer)])
 
-        # self.mlp_block_mnist = torch.nn.Sequential(
-        #         QlinearMLP(self.pe_out * 15 * 15,256), # mnist
-        #         QlinearMLP(256,64),
-        #         QlinearMLP(64,num_classes)
-        #         )
-
-        # r224
-        # self.mlp_block = torch.nn.Sequential(
-        #         QlinearMLP(self.pe_out * 113 * 113,512), # country211 r224
-        #         QlinearMLP(512,256),
-        #         QlinearMLP(256,num_classes)
-        #         )
         self.mlp_block = torch.nn.Sequential(
             torch.nn.AdaptiveAvgPool2d((8,8)),
             torch.nn.Flatten(),
-            QlinearMLP(self.pe_out*8*8,256),
+            QlinearMLP(self.pe_out*8*8,next_nearest32(num_classes)*2),
             torch.nn.GELU(),
-            QlinearMLP(256,num_classes)
+            QlinearMLP(next_nearest32(num_classes)*2,num_classes,bias=False)
         )
 
     @staticmethod
