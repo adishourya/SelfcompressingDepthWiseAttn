@@ -7,16 +7,10 @@ print(torch.__version__)
 from einops._torch_specific import allow_ops_in_compiled_graph
 allow_ops_in_compiled_graph()
 
-data_config = dict(
-        train_split = 0.75,
-        eval_split = 0.1,
-        test_split = 0.15,
-        batch_size = 256
-)
 from data.mnist_data import get_dataloader as mnist_loader
 from data.country_data import get_dataloader as country_loader
 
-# train_loader,eval_loader,_ = mnist_loader(**data_config)
+# train_loader,eval_loader,_ = mnist_loader( train_split = 0.75, eval_split = 0.1, test_split = 0.15, batch_size = 256 )
 train_loader,eval_loader,_ = country_loader(batch_size=8)
 
 
