@@ -2,6 +2,8 @@
 
 #counter(heading).update(0)
 #set text(size: 0.9em)
+#set heading(numbering: none)
+
 = Checklist #icon("tick")/#icon("cross")
 
 This checklist was created by Chang Sun for Bachelor's and Master's students at the Department of Advanced Computing Sciences, Maastricht University. It supports writing a complete, clear, and scientifically sound thesis. Students are encouraged to share this checklist with supervisors and highlight the items they have addressed.

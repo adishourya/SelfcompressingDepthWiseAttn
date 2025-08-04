@@ -93,6 +93,7 @@
   // #set text(font: "Arial", size: 11pt, spacing: .35em)
   // #set text(font: "Arial", size: 11pt)
   #set text(font: "Barlow", size: 11pt)
+  // #set text(size:11pt)
   // #set text(font: "IBM Plex Sans", size: 11pt)
   // #set text(font: "IBM Plex Mono", size: 11pt)
   // #set text(font: "Barlow", size: 11pt,spacing:0.22em)
