@@ -34,7 +34,7 @@ def benchmark(func, input_tensor, output_tensor, weight_tensor, *, num_warmups, 
 
 # --- Config ---
 B = 256# batch size
-H=W=244
+H=W=64
 dummy_dict = dict(
 in_channels = 3,
 out_channels = 32,
@@ -48,6 +48,7 @@ ungrouped_dict = dict(
     in_channels = dummy_dict["out_channels"],
     out_channels = dummy_dict["out_channels"],
     kernel_size = dummy_dict["kernel_size"],
+    stride=2,
     padding=1,
     groups = 1
 )
@@ -56,6 +57,7 @@ depth_wise_dict = dict(
     in_channels = dummy_dict["out_channels"],
     out_channels = dummy_dict["out_channels"],
     kernel_size = dummy_dict["kernel_size"],
+    stride=2,
     padding = 1,
     groups = dummy_dict["out_channels"]
 )
@@ -72,36 +74,36 @@ dummy_conv = torch.nn.Conv2d(**dummy_dict).to("cuda")
 dummy_conv = torch.compile(dummy_conv)
 
 # normal_conv
-ungrouped_conv = torch.nn.Conv2d(**ungrouped_dict).to("cuda")
-ungrouped_conv = torch.compile(ungrouped_conv)
+ungrouped_convT = torch.nn.ConvTranspose2d(**ungrouped_dict).to("cuda")
+ungrouped_convT = torch.compile(ungrouped_convT)
 
 # depthwise
-depthwise_conv = torch.nn.Conv2d(**depth_wise_dict).to("cuda")
-depthwise_conv = torch.compile(depthwise_conv)
+depthwise_convT = torch.nn.ConvTranspose2d(**depth_wise_dict).to("cuda")
+depthwise_convT = torch.compile(depthwise_convT)
 
 # Forward once to get output shape
 with torch.no_grad():
     dummy_out = dummy_conv(input_imgs)
-    ungrouped_out = ungrouped_conv(dummy_out)
-    depthwise_out = depthwise_conv(dummy_out)
+    ungrouped_out = ungrouped_convT(dummy_out)
+    depthwise_out = depthwise_convT(dummy_out)
     print("input: ",input_imgs.shape)
     print("init: ",dummy_out.shape)
     print("ungroupd:",ungrouped_out.shape)
     print("depth_out",depthwise_out.shape)
     print("=======")
     print("dummy weight",dummy_conv.weight.shape)
-    print("ungrouped weight",ungrouped_conv.weight.shape)
-    print("depthwise weight",depthwise_conv.weight.shape)
+    print("ungrouped weight",ungrouped_convT.weight.shape)
+    print("depthwise weight",depthwise_convT.weight.shape)
 
 # Benchmark function
 def run_dummy():
     dummy_conv(input_imgs)
 
 def run_ungrouped():
-    ungrouped_conv(dummy_out)
+    ungrouped_convT(dummy_out)
 
 def run_depthwise():
-    depthwise_conv(dummy_out)
+    depthwise_convT(dummy_out)
 
 
 # Run benchmark
@@ -120,7 +122,7 @@ benchmark(
     partial(run_ungrouped),
     input_tensor=dummy_out,
     output_tensor=ungrouped_out,
-    weight_tensor=ungrouped_conv.weight,
+    weight_tensor=ungrouped_convT.weight,
     num_warmups=10,
     num_iterations=100
 )
@@ -130,7 +132,7 @@ benchmark(
     partial(run_depthwise),
     input_tensor=dummy_out,
     output_tensor=depthwise_out,
-    weight_tensor=depthwise_conv.weight,
+    weight_tensor=depthwise_convT.weight,
     num_warmups=10,
     num_iterations=100
 )
