@@ -21,7 +21,9 @@
 // accent colour
 // override accent color in main for weekly documents
 #let my_colors = (
-  accent : rgb("#5e81ac"),
+  // accent : rgb("#5e81ac"),
+  accent : rgb("#3b4252"),
+  // accent: rgb("#39304a"),
   accent1: rgb("#81a1c1"),
   accent2 : rgb("#a3be8c"),
   accent3 : rgb("#d08770"),
@@ -45,6 +47,7 @@
   plan_fg : rgb("#a3be8c"),
   alt_bg : rgb("#484848"),
   heading1_color : rgb("#003a6c"),
+  // heading1_color : rgb("#2e3440"),
   // heading1_color : rgb("#000000"),
   link_color : rgb("#2e6798"),
   
@@ -118,25 +121,57 @@
 
 
   // set header and footer text
-  #let section_header = [#context {
-    let selected = selector(heading).before(here())
-    let level = counter(selected)
 
-    let headings = query(selected)
-    if headings.len() ==0 {
+  // #let section_header = [#context {
+  //   let selected = selector(heading).before(here())
+  //   let level = counter(selected)
+
+  //   let headings = query(selected)
+  //   if headings.len() ==0 {
+  //     return
+  //   }
+  //   let heading = headings.last()
+    
+  //   level.display("1.")
+  //   h(0.2em)
+  //   heading.body
+  // }]  
+
+  #let section_header = [#context {
+    // no heading in the first page
+    
+    // Skip header on first page
+    if here().page() == 1 {
       return
     }
-    let heading = headings.last()
-    
-    level.display("1.")
-    h(0.2em)
-    heading.body
+    // Try to find a level-1 heading on the current page.
+    let h = query(heading.where(level: 1).after(here()))
+      .filter(h => h.location().page() == here().page())
+      .at(0, default: {
+        // If none on the current page, fall back to the last one before here.
+        query(heading.where(level: 1).before(here())).at(-1, default: none)
+      })
+
+    // If no heading found at all, return nothing.
+    if h == none {
+      return
+    }
+
+    // If numbering exists, resolve and show it.
+    let number = if h.numbering != none {
+      numbering(h.numbering, ..counter(heading).at(h.location()))
+    }
+
+    // Return combined number and heading text.
+    [#number #h.body]
   }]
   
   #let header_text1 = [#text(fill:my_colors.alt_fg)[#section_header]]
   #let header_text2 = [#text(fill: my_colors.alt_fg)[]]
 
-  #let footer_text1 =  [#smallcaps[#text(fill:blue)[Thesis Report]]]
+  // #let footer_text1 =  [#smallcaps[#text(fill:blue)[Maastricht University #icon("maas_logo")]]]
+  // #let footer_text1 =  [#icon("maas_logo")]
+  #let footer_text1 = []
 
   #let footer_text2 = [Page #context {
     let counter = counter(page)

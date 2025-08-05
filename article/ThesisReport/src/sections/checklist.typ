@@ -1,15 +1,15 @@
 #import "../callouts.typ":icon
 
-#counter(heading).update(0)
 #set text(size: 0.9em)
-#set heading(numbering: none)
+
 
 = Checklist #icon("tick")/#icon("cross")
 
+== Report Checklist
 This checklist was created by Chang Sun for Bachelor's and Master's students at the Department of Advanced Computing Sciences, Maastricht University. It supports writing a complete, clear, and scientifically sound thesis. Students are encouraged to share this checklist with supervisors and highlight the items they have addressed.
 
 // #heading[1][Introduction]
-== Introduction
+=== Introduction
 + *Problem Statement*: Clearly define the key problem your thesis addresses.
 + *Significance*: Explain why this problem is important and urgent.
 + *Research Challenges*: Identify why the problem has not been solved yet.
@@ -20,7 +20,7 @@ This checklist was created by Chang Sun for Bachelor's and Master's students at 
 
 // #heading[1][Related Work]
 
-== Related Work
+=== Related Work
 + Summarize state-of-the-art methods relevant to your thesis.
 + Discuss strengths and limitations.
 + Identify gaps in current work.
@@ -28,8 +28,8 @@ This checklist was created by Chang Sun for Bachelor's and Master's students at 
 
 // #heading[1][Methods / Methodology]
 
-== Methodology
-+ *Approach Overview*: High-level view with a well-labeled diagram.
+=== Methodology
++ *Approach Overview*: High-level view with a well-labeled diagram #icon("cross")
 + *Components*: Explain each component in separate subsections.
 + *Implementation Details*:
   + Method implementation
@@ -38,10 +38,10 @@ This checklist was created by Chang Sun for Bachelor's and Master's students at 
 
 // #heading[1][Datasets]
 
-== Datasets
+=== Datasets
 + *Data Sources & Collection*:
-  + What, where, when, and how data was collected
-  + Flowchart: source → filtering → final dataset
+  + What, where, when, and how data was collected #icon("cross")
+  + Flowchart: source → filtering → final dataset #icon("cross")
   + Inclusion/exclusion criteria and counts
   + Provide access details in footnotes or appendix
 + *Dataset Description*:
@@ -50,7 +50,7 @@ This checklist was created by Chang Sun for Bachelor's and Master's students at 
 
 // #heading[1][Experiments]
 
-== Experiments
+=== Experiments
 + *Design*:
   + Dataset splits (training/test/validation)
   + Which experiments are run, which parameters tested
@@ -61,14 +61,14 @@ This checklist was created by Chang Sun for Bachelor's and Master's students at 
 
 // #heading[1][Evaluation Methods]
 
-== Evaluation Methodology
+=== Evaluation Methodology
 + Describe performance evaluation strategy.
 + List and define metrics (e.g., accuracy, precision).
 + Include equations and implementation notes if possible.
 
 // #heading[1][Results]
 
-== Results
+=== Results
 + Use tables and figures to report results clearly.
 + Highlight key numbers readers should focus on.
 + *Statistical Significance*:
@@ -77,7 +77,7 @@ This checklist was created by Chang Sun for Bachelor's and Master's students at 
 
 // #heading[1][Discussion]
 
-== Discussion
+=== Discussion
 + Interpret findings and patterns.
 + Reflect on unexpected trends.
 + *Limitations*: What didn’t work, assumptions, robustness.
@@ -85,19 +85,19 @@ This checklist was created by Chang Sun for Bachelor's and Master's students at 
 + *(Optional)* Discuss scientific and societal impacts.
 
 // #heading[1][Conclusion]
-== Conclusion
+=== Conclusion
 + Concise summary of your thesis.
 + Highlight discoveries and findings.
 + Share lessons learned.
 + *(If not in Discussion)* mention future work directions.
 
 // #heading[1][References]
-== References
+=== References
 + All references must include DOI or persistent IDs.
 + Prefer peer-reviewed papers. Preprints (e.g., arXiv) are allowed but disclose their proportion.
 
 // #heading[1][Note on Chapter Organization]
-== Chapter Organization
+=== Chapter Organization
 Sections 4–8 may be structured in one of the following ways:
 
 + Separate each as an individual chapter.

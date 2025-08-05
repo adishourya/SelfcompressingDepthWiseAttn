@@ -9,7 +9,7 @@
 // Title
 
 #let title = [
-self compressing effective vision tower for dense prediction
+Self-Compressing Vision Tower for Efficient #linebreak() Dense Prediction Tasks
 ]
 
 
@@ -72,4 +72,9 @@ self compressing effective vision tower for dense prediction
 // #bibliography("refs.bib",style: "american-physics-society")
 
 #pagebreak()
+
+#counter(heading).update(0)
+#set heading(numbering:"A.")
+#include "src/sections/appendix.typ"
 #include "src/sections/checklist.typ"
+
