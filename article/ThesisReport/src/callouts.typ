@@ -154,4 +154,16 @@ else {
 #let plan_line = line(length:100%, stroke:(paint:my_colors.gradient_color, dash:"dashed",thickness:1pt))
 // #let plan(abcd) = [_section plan:_#text(7pt,style: "italic",abcd) #plan_line]
 
-
+#let table_color(color:green,content) = {
+set table(
+  stroke:none,
+  gutter: 0.1em,
+  fill: (x, y) =>{ 
+    if x==0 and y==0 {color}
+    else if x == 0 and y > 0 {gray.lighten(80%)} 
+    else if y==0 {gray.lighten(60%)} 
+    else {my_colors.alt_fg.lighten(40%)}},
+  inset: (right: 1.5em),
+  )
+content
+}

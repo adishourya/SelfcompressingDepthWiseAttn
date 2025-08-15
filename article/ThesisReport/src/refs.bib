@@ -1,5 +1,48 @@
 %------ Atleast cite 🤞 ~60 . paligemma does (135)
 
+% main article
+@misc{cséfalvay2023selfcompressingneuralnetworks,
+      title={Self-Compressing Neural Networks}, 
+      author={Szabolcs Cséfalvay and James Imber},
+      year={2023},
+      eprint={2301.13142},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2301.13142}, 
+}
+
+% layerdrop
+@misc{fan2019reducingtransformerdepthdemand,
+      title={Reducing Transformer Depth on Demand with Structured Dropout}, 
+      author={Angela Fan and Edouard Grave and Armand Joulin},
+      year={2019},
+      eprint={1909.11556},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/1909.11556}, 
+}
+
+% another pseudo
+@misc{défossez2022differentiablemodelcompressionpseudo,
+      title={Differentiable Model Compression via Pseudo Quantization Noise}, 
+      author={Alexandre Défossez and Yossi Adi and Gabriel Synnaeve},
+      year={2022},
+      eprint={2104.09987},
+      archivePrefix={arXiv},
+      primaryClass={stat.ML},
+      url={https://arxiv.org/abs/2104.09987}, 
+}
+
+% efficient vit
+@misc{cai2024efficientvitmultiscalelinearattention,
+      title={EfficientViT: Multi-Scale Linear Attention for High-Resolution Dense Prediction}, 
+      author={Han Cai and Junyan Li and Muyan Hu and Chuang Gan and Song Han},
+      year={2024},
+      eprint={2205.14756},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2205.14756}, 
+}
 % deeper layer dont carry their weight
 @misc{gromov2025unreasonableineffectivenessdeeperlayers,
       title={The Unreasonable Ineffectiveness of the Deeper Layers}, 
@@ -9,6 +52,110 @@
       archivePrefix={arXiv},
       primaryClass={cs.CL},
       url={https://arxiv.org/abs/2403.17887}, 
-
 }
 
+% couple of full softmax attn
+@misc{minimax2025minimax01scalingfoundationmodels,
+      title={MiniMax-01: Scaling Foundation Models with Lightning Attention}, 
+      author={MiniMax and Aonian Li and Bangwei Gong and Bo Yang and Boji Shan and Chang Liu and Cheng Zhu and Chunhao Zhang and Congchao Guo and Da Chen and Dong Li and Enwei Jiao and Gengxin Li and Guojun Zhang and Haohai Sun and Houze Dong and Jiadai Zhu and Jiaqi Zhuang and Jiayuan Song and Jin Zhu and Jingtao Han and Jingyang Li and Junbin Xie and Junhao Xu and Junjie Yan and Kaishun Zhang and Kecheng Xiao and Kexi Kang and Le Han and Leyang Wang and Lianfei Yu and Liheng Feng and Lin Zheng and Linbo Chai and Long Xing and Meizhi Ju and Mingyuan Chi and Mozhi Zhang and Peikai Huang and Pengcheng Niu and Pengfei Li and Pengyu Zhao and Qi Yang and Qidi Xu and Qiexiang Wang and Qin Wang and Qiuhui Li and Ruitao Leng and Shengmin Shi and Shuqi Yu and Sichen Li and Songquan Zhu and Tao Huang and Tianrun Liang and Weigao Sun and Weixuan Sun and Weiyu Cheng and Wenkai Li and Xiangjun Song and Xiao Su and Xiaodong Han and Xinjie Zhang and Xinzhu Hou and Xu Min and Xun Zou and Xuyang Shen and Yan Gong and Yingjie Zhu and Yipeng Zhou and Yiran Zhong and Yongyi Hu and Yuanxiang Fan and Yue Yu and Yufeng Yang and Yuhao Li and Yunan Huang and Yunji Li and Yunpeng Huang and Yunzhi Xu and Yuxin Mao and Zehan Li and Zekang Li and Zewei Tao and Zewen Ying and Zhaoyang Cong and Zhen Qin and Zhenhua Fan and Zhihang Yu and Zhuo Jiang and Zijia Wu},
+      year={2025},
+      eprint={2501.08313},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2501.08313}, 
+}
+
+% tri-daos tweet
+@misc{dao2025hybrid,
+  author       = {Tri Dao},
+  title        = {Hybrid linear-softmax attention working very well at large scale and long-context! As we’ve seen with multiple models now …},
+  year         = {2025},
+  month        = jul,
+  day          = {31},
+  url          = {https://x.com/tri_dao/status/1879439184462762225},
+  note         = {Tweet},
+  howpublished = {\url{https://x.com/tri_dao/status/1879439184462762225}}
+}
+
+% normal vit
+@InProceedings{tiny_vit,
+  title={TinyViT: Fast Pretraining Distillation for Small Vision Transformers},
+  author={Wu, Kan and Zhang, Jinnian and Peng, Houwen and Liu, Mengchen and Xiao, Bin and Fu, Jianlong and Yuan, Lu},
+  booktitle={European conference on computer vision (ECCV)},
+  year={2022}
+}
+
+@inproceedings{mobile_vit,
+title = {MobileViT: Light-weight, General-purpose, and Mobile-friendly Vision Transformer},
+author = {Sachin Mehta and Mohammad Rastegari},
+year = {2022},
+URL = {https://arxiv.org/abs/2110.02178}
+}
+
+% paligemma uses efficient vit ... that does well on dense prediction task while using less compute
+@misc{beyer2024paligemmaversatile3bvlm,
+      title={PaliGemma: A versatile 3B VLM for transfer}, 
+      author={Lucas Beyer and Andreas Steiner and André Susano Pinto and Alexander Kolesnikov and Xiao Wang and Daniel Salz and Maxim Neumann and Ibrahim Alabdulmohsin and Michael Tschannen and Emanuele Bugliarello and Thomas Unterthiner and Daniel Keysers and Skanda Koppula and Fangyu Liu and Adam Grycner and Alexey Gritsenko and Neil Houlsby and Manoj Kumar and Keran Rong and Julian Eisenschlos and Rishabh Kabra and Matthias Bauer and Matko Bošnjak and Xi Chen and Matthias Minderer and Paul Voigtlaender and Ioana Bica and Ivana Balazevic and Joan Puigcerver and Pinelopi Papalampidi and Olivier Henaff and Xi Xiong and Radu Soricut and Jeremiah Harmsen and Xiaohua Zhai},
+      year={2024},
+      eprint={2407.07726},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2407.07726}, 
+}
+
+
+@misc{gernigon2024adaqatadaptivebitwidthquantizationaware,
+      title={AdaQAT: Adaptive Bit-Width Quantization-Aware Training}, 
+      author={Cédric Gernigon and Silviu-Ioan Filip and Olivier Sentieys and Clément Coggiola and Mickael Bruno},
+      year={2024},
+      eprint={2404.16876},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2404.16876}, 
+}
+
+
+@article{Zhang_2025,
+   title={Depth-Wise Convolutions in Vision Transformers for efficient training on small datasets},
+   volume={617},
+   ISSN={0925-2312},
+   url={http://dx.doi.org/10.1016/j.neucom.2024.128998},
+   DOI={10.1016/j.neucom.2024.128998},
+   journal={Neurocomputing},
+   publisher={Elsevier BV},
+   author={Zhang, Tianxiao and Xu, Wenju and Luo, Bo and Wang, Guanghui},
+   year={2025},
+   month=feb, pages={128998} }
+
+
+@misc{zeiler2013visualizingunderstandingconvolutionalnetworks,
+      title={Visualizing and Understanding Convolutional Networks}, 
+      author={Matthew D Zeiler and Rob Fergus},
+      year={2013},
+      eprint={1311.2901},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/1311.2901}, 
+}
+
+
+@misc{micikevicius2022fp8formatsdeeplearning,
+      title={FP8 Formats for Deep Learning}, 
+      author={Paulius Micikevicius and Dusan Stosic and Neil Burgess and Marius Cornea and Pradeep Dubey and Richard Grisenthwaite and Sangwon Ha and Alexander Heinecke and Patrick Judd and John Kamalu and Naveen Mellempudi and Stuart Oberman and Mohammad Shoeybi and Michael Siu and Hao Wu},
+      year={2022},
+      eprint={2209.05433},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2209.05433}, 
+}
+
+
+@misc{bengio2013estimatingpropagatinggradientsstochastic,
+      title={Estimating or Propagating Gradients Through Stochastic Neurons for Conditional Computation}, 
+      author={Yoshua Bengio and Nicholas Léonard and Aaron Courville},
+      year={2013},
+      eprint={1308.3432},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/1308.3432}, 
+}

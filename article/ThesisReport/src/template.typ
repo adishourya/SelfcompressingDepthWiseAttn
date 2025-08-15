@@ -9,11 +9,9 @@
 
 /// ------ Imports------
 // get imports from typst universe
-#import "@preview/codly:1.0.0": *
-// use this to align a large body of caption along side the image
-#import "@preview/oasis-align:0.1.0": *
-// use this to simply wrap an image in a huge body of text . if its an image make sure to set width
-#import "@preview/wrap-it:0.1.0": wrap-content
+#import "@preview/codly:1.3.0": *
+#import "@preview/codly-languages:0.1.1": *
+#show: codly-init.with()
 
 
 // --------- our colors -----
@@ -23,7 +21,7 @@
 #let my_colors = (
   // accent : rgb("#5e81ac"),
   accent : rgb("#3b4252"),
-  // accent: rgb("#39304a"),
+  // accent: rgb("#d08770"),
   accent1: rgb("#81a1c1"),
   accent2 : rgb("#a3be8c"),
   accent3 : rgb("#d08770"),
@@ -96,6 +94,7 @@
   // #set text(font: "Arial", size: 11pt, spacing: .35em)
   // #set text(font: "Arial", size: 11pt)
   #set text(font: "Barlow", size: 11pt)
+  // #set text(font: "New Computer Modern",size:11pt)
   // #set text(size:11pt)
   // #set text(font: "IBM Plex Sans", size: 11pt)
   // #set text(font: "IBM Plex Mono", size: 11pt)
@@ -113,7 +112,7 @@
   #show raw: set text(font:"Space Mono", size:6pt)
   #show raw : set par(leading:4pt)
   // plugin setup
-  #show: codly-init.with()
+
   #codly(stroke:1pt+my_colors.accent)
   #codly(fill: my_colors.code_fg.lighten(10%),inset:2.5pt)
   #codly(zebra-fill: none)
@@ -211,7 +210,7 @@
   #show ref: it => {text(my_colors.link_color, it)}
   
   // caption colors
-  #show figure.caption: set text(.6em, fill: my_colors.alt_bg)
+  #show figure.caption: set text(.85em, fill: my_colors.alt_bg)
 
   // table settings
 

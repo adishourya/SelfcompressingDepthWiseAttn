@@ -1,5 +1,4 @@
 #import "../callouts.typ":icon
-
 #set text(size: 0.9em)
 
 
@@ -10,13 +9,13 @@ This checklist was created by Chang Sun for Bachelor's and Master's students at 
 
 // #heading[1][Introduction]
 === Introduction
-+ *Problem Statement*: Clearly define the key problem your thesis addresses.
-+ *Significance*: Explain why this problem is important and urgent.
-+ *Research Challenges*: Identify why the problem has not been solved yet.
-+ *Brief Description of This Work*: Summarize your approach and how it differs from existing methods.
-+ *(Optional)* *Illustrative Diagram*: Include a simple, easy-to-understand diagram.
-+ *Key Contributions*: List and highlight the innovative contributions.
-+ *Thesis Structure*: Briefly describe what each chapter covers.
++ *Problem Statement*: Clearly define the key problem your thesis addresses. #link(<check_research_question>,"research_question") #icon("tick")
++ *Significance*: Explain why this problem is important and urgent.#link(<check_significance>,"significance") #icon("tick")
++ *Research Challenges*: Identify why the problem has not been solved yet.#icon("warning")
++ *Brief Description of This Work*: Summarize your approach and how it differs from existing methods. #link(<check_brief_description>,"desc") #icon("tick")
++ *(Optional)* *Illustrative Diagram*: Include a simple, easy-to-understand diagram.#icon("cross")
++ *Key Contributions*: List and highlight the innovative contributions.#link(<check_contribution>,"contribution") #icon("tick")
++ *Thesis Structure*: Briefly describe what each chapter covers.#icon("cross")
 
 // #heading[1][Related Work]
 

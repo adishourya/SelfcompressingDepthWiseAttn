@@ -18,15 +18,14 @@ Self-Compressing Vision Tower for Efficient #linebreak() Dense Prediction Tasks
 // authors
 #grid(columns: (1fr,1fr,1fr),
 
-  align(center)[Aditya Shourya #link(<affiliation_b>,super[b])
-  #h(-0.2em)#super[,]#h(-0.2em)
-  #link(<affiliation_star>,super[c])\
+  align(center)[Aditya Shourya
+  #link(<affiliation_a>,super[a])\
   #text(size:8pt,
   "a.shourya@student.maastrichtuniversity.nl")],
 
   
   align(center)[Guangzhi Tang
-  #link(<affiliation_a>,super[b])\
+  #link(<affiliation_a>,super[a])\
   #text(size:8pt,
   "guangzhi.tang@maastrichtuniversity.nl")],
   
@@ -39,15 +38,15 @@ Self-Compressing Vision Tower for Efficient #linebreak() Dense Prediction Tasks
 )
 
 
-#text(5pt,style: "italic",
-[#super([a]) Institute of Data Science, Faculty of Science and Engineering, Maastricht University, Maastricht, The Netherlands])<affiliation_a>
+#text(0.6em,style: "italic",
+[#super([b]) Institute of Data Science, Faculty of Science and Engineering, Maastricht University, Maastricht, The Netherlands])<affiliation_a>
 
-#text(5pt,style:"italic",
-[#super([b]) Department of Advanced Computing Sciences, Faculty of Science and Engineering, Maastricht University, Maastricht, The Netherlands
+#text(0.6em,style:"italic",
+[#super([a]) Department of Advanced Computing Sciences, Faculty of Science and Engineering, Maastricht University, Maastricht, The Netherlands
 ])<affiliation_b>
 
-#text(5pt,style:"italic",
-[#super([c]) work done during master thesis... at #super[a]])<affiliation_star>
+// #text(5pt,style:"italic",
+// [#super([c]) work done during master thesis... at #super[a]])<affiliation_star>
 
 // abstract
 #let abstract = [
