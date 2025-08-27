@@ -1,0 +1,7 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/linearAttn/1080p15/partial_movie_files/LinearAttentionScene/1264212857_2139753833_223132457.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/linearAttn/1080p15/partial_movie_files/LinearAttentionScene/2725161996_3394500337_145914067.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/linearAttn/1080p15/partial_movie_files/LinearAttentionScene/2725161996_612268715_406834145.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/linearAttn/1080p15/partial_movie_files/LinearAttentionScene/2725161996_4217992463_775443337.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/linearAttn/1080p15/partial_movie_files/LinearAttentionScene/2725161996_1156278674_848781416.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/linearAttn/1080p15/partial_movie_files/LinearAttentionScene/2725161996_2844360058_2657078524.mp4'

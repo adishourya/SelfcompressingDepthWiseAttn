@@ -1,0 +1,7 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/pixel_shuffling/1080p60/partial_movie_files/PixelShuffling/3529212410_438954346_223132457.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/pixel_shuffling/1080p60/partial_movie_files/PixelShuffling/3040924799_1927571787_262140759.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/pixel_shuffling/1080p60/partial_movie_files/PixelShuffling/3040924799_3394500337_4169812397.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/pixel_shuffling/1080p60/partial_movie_files/PixelShuffling/3040924799_3261878179_2566250950.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/pixel_shuffling/1080p60/partial_movie_files/PixelShuffling/3040924799_2404619010_2303203558.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/pixel_shuffling/1080p60/partial_movie_files/PixelShuffling/3040924799_4217992463_1129025861.mp4'
