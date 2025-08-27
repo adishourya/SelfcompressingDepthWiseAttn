@@ -31,7 +31,7 @@
   // pipeline nodes (left -> right)
   blob(node_pos.expand, [Image],   tint: red, name: <exp>),
   edge("->"),
-  blob(node_pos.upscale, [Positional Embedding], tint: orange, name: <up>),
+  blob(node_pos.upscale, [Embedding], tint: orange, name: <up>),
   edge("->"),
   blob(node_pos.depth,  [Transformer Blocks (repeat n times)], tint: gray, name: <dw>),
   edge("->"),

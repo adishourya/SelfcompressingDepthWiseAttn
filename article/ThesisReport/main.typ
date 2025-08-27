@@ -48,9 +48,11 @@ Self-Compressing Vision Tower for Efficient #linebreak() Dense Prediction Tasks
 // #text(5pt,style:"italic",
 // [#super([c]) work done during master thesis... at #super[a]])<affiliation_star>
 
+
+
 // abstract
 #let abstract = [
-#lorem(200)
+High-resolution dense prediction, essential for tasks such as classification, segmentation, and optical flow, requires models that balance accuracy with efficiency. Most state-of-the-art architectures rely on deep sequential operations that are computationally expensive and difficult to deploy on resource-constrained devices. We introduce a novel, self-compressing vision architecture that integrates structured pruning and quantization across key modules: convolutional layers, transposed convolutions, and linear attention in proportion to their computational cost. By strategically reducing precision and pruning tensors in less critical layers, our method achieves significant model compression with minimal impact on accuracy. We evaluated our approach on fine-grained classification (CUB-200-2011, Country211), semantic segmentation (ADE20K), and optical flow (HD1K). Our models consistently match the accuracy of the current state-of-the-art, EfficientViT, while often reducing both storage requirements and FLOPs. Furthermore, our method outperforms DiffQ in both accuracy and efficiency under identical parameter constraints. We conclude that compression can be a constructive tool for not only reducing model size but also enabling the inspection of module importance across layers, which facilitates better model design for specific target devices.  
 ]
 #show_abstract(abstract)
 

@@ -218,7 +218,7 @@
   stroke:none,
   gutter: 0.1em,
   fill: (x, y) =>{ 
-    if x==0 and y==0 {my_colors.plan_fg}
+    if x==0 and y==0 {my_colors.accent1.lighten(40%)}
     else if x == 0 and y > 0 {gray.lighten(80%)} 
     else if y==0 {gray.lighten(60%)} 
     else {my_colors.alt_fg.lighten(40%)}},

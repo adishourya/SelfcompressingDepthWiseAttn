@@ -2,13 +2,11 @@
 #set text(size: 0.9em)
 
 
-= Checklist #icon("tick")/#icon("cross")
-
-== Report Checklist
+= Report Checklist #icon("tick")/#icon("cross")
 This checklist was created by Chang Sun for Bachelor's and Master's students at the Department of Advanced Computing Sciences, Maastricht University. It supports writing a complete, clear, and scientifically sound thesis. Students are encouraged to share this checklist with supervisors and highlight the items they have addressed.
 
 // #heading[1][Introduction]
-=== Introduction
+== Introduction
 + *Problem Statement*: Clearly define the key problem your thesis addresses. #link(<check_research_question>,"research_question") #icon("tick")
 + *Significance*: Explain why this problem is important and urgent.#link(<check_significance>,"significance") #icon("tick")
 + *Research Challenges*: Identify why the problem has not been solved yet.#icon("warning")
@@ -19,84 +17,85 @@ This checklist was created by Chang Sun for Bachelor's and Master's students at 
 
 // #heading[1][Related Work]
 
-=== Related Work
-+ Summarize state-of-the-art methods relevant to your thesis.
-+ Discuss strengths and limitations.
-+ Identify gaps in current work.
-+ Explain how your thesis addresses these gaps.
+== Related Work
++ Summarize state-of-the-art methods relevant to your thesis.#icon("tick")
++ Discuss strengths and limitations.#icon("tick")
++ Identify gaps in current work.#icon("tick")
++ Explain how your thesis addresses these gaps.#icon("tick")
 
 // #heading[1][Methods / Methodology]
 
-=== Methodology
+== Methodology
 + *Approach Overview*: High-level view with a well-labeled diagram #icon("cross")
-+ *Components*: Explain each component in separate subsections.
++ *Components*: Explain each component in separate subsections.#icon("tick")
 + *Implementation Details*:
-  + Method implementation
-  + Architecture choices, algorithms, and software
-  + Code must be open-source and documented on GitHub.
+  + Method implementation #icon("tick")
+  + Architecture choices, algorithms, and software #icon("tick")
+  + Code must be open-source and documented on GitHub. #icon("tick")
 
 // #heading[1][Datasets]
 
-=== Datasets
+== Datasets
 + *Data Sources & Collection*:
-  + What, where, when, and how data was collected #icon("cross")
+  + What, where, when, and how data was collected #icon("tick")
   + Flowchart: source → filtering → final dataset #icon("cross")
-  + Inclusion/exclusion criteria and counts
-  + Provide access details in footnotes or appendix
+  + Inclusion/exclusion criteria and counts #icon("tick")
+  + Provide access details in footnotes or appendix #icon("cross")
 + *Dataset Description*:
-  + Size, distributions, missing values
-  + Preprocessing steps
+  + Size, distributions, missing values #icon("tick")
+  + Preprocessing steps #icon("tick")
 
 // #heading[1][Experiments]
 
-=== Experiments
+== Experiments
 + *Design*:
-  + Dataset splits (training/test/validation)
-  + Which experiments are run, which parameters tested
+  + Dataset splits (training/test/validation) #icon("tick")
+  + Which experiments are run, which parameters tested #icon("warning")
+  we do not provide details on hyper-parameter testing (such as initializing module bit-depth).
 + *Settings*:
-  + Hardware (GPU/CPU model)
-  + Epochs, batch size, learning rate, etc.
-+ *(Include figures/flowcharts when design is complex.)*
+  + Hardware (GPU/CPU model) #icon("tick")
+  + Epochs, batch size, learning rate, etc. #icon("warning")
++ *(Include figures/flowcharts when design is complex.)* #icon("tick")
 
 // #heading[1][Evaluation Methods]
 
-=== Evaluation Methodology
-+ Describe performance evaluation strategy.
-+ List and define metrics (e.g., accuracy, precision).
-+ Include equations and implementation notes if possible.
+== Evaluation Methodology
++ Describe performance evaluation strategy.#icon("tick")
++ List and define metrics (e.g., accuracy, precision).#icon("tick")
++ Include equations and implementation notes if possible.#icon("tick")
 
 // #heading[1][Results]
 
-=== Results
-+ Use tables and figures to report results clearly.
-+ Highlight key numbers readers should focus on.
+== Results
++ Use tables and figures to report results clearly.#icon("tick")
++ Highlight key numbers readers should focus on.#icon("tick")
 + *Statistical Significance*:
-  + Show deviations, error bars, or other significance metrics.
-+ Objectively compare models, parameters—avoid interpretations here.
+  + Show deviations, error bars, or other significance metrics. #icon("tick")
++ Objectively compare models, parameters—avoid interpretations here.#icon("tick")
 
 // #heading[1][Discussion]
 
-=== Discussion
-+ Interpret findings and patterns.
-+ Reflect on unexpected trends.
-+ *Limitations*: What didn’t work, assumptions, robustness.
-+ *Future Work*: Propose directions for improvement.
+== Discussion
++ Interpret findings and patterns.#icon("warning")
++ Reflect on unexpected trends.#icon("warning")
++ *Limitations*: What didn’t work, assumptions, robustness. #icon("warning")
++ *Future Work*: Propose directions for improvement.#icon("tick")
 + *(Optional)* Discuss scientific and societal impacts.
 
 // #heading[1][Conclusion]
-=== Conclusion
-+ Concise summary of your thesis.
-+ Highlight discoveries and findings.
-+ Share lessons learned.
+== Conclusion
++ Concise summary of your thesis.#icon("warning")
++ Highlight discoveries and findings.#icon("warning")
++ Share lessons learned.#icon("warning")
 + *(If not in Discussion)* mention future work directions.
 
 // #heading[1][References]
-=== References
-+ All references must include DOI or persistent IDs.
-+ Prefer peer-reviewed papers. Preprints (e.g., arXiv) are allowed but disclose their proportion.
+== References
++ All references must include DOI or persistent IDs. #icon("tick")
++ Prefer peer-reviewed papers. Preprints (e.g., arXiv) are allowed but disclose their proportion #icon("warning"). #icon("tick")
 
 // #heading[1][Note on Chapter Organization]
-=== Chapter Organization
+== Chapter Organization
 Sections 4–8 may be structured in one of the following ways:
 
 + Separate each as an individual chapter.
@@ -110,7 +109,7 @@ Sections 4–8 may be structured in one of the following ways:
 + Other logical groupings are allowed if all parts are clearly covered.
 
 // #heading[1][Defense Presentation Checklist]
-== Defense Presentation Checklist
+= Defense Presentation Checklist
 + What is the problem?
 + Why is it significant?
 + Related work

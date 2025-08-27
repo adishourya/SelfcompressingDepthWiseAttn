@@ -29,7 +29,7 @@
   mark-scale: 70%,
 
   // pipeline nodes (left -> right)
-  blob(node_pos.expand, [Expand\ Block(Conv)],   tint: yellow, name: <exp>),
+  blob(node_pos.expand, [Expand\ Block(ConvD)],   tint: yellow, name: <exp>),
   edge("->"),
   blob(node_pos.upscale, [Upscaling\ Block(ConvT)], tint: olive, name: <up>),
   edge("->"),
