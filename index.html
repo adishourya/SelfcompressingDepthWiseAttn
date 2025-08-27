@@ -630,13 +630,37 @@
 		</video>
 
 		---
-		clas:center,top
+		clas:center
+		## .btext[Penalizing Factor]
+		.left[
 		- so we have added penalty if the compute module performs reduction over shared block memory.
 		- or else we penalize modes of tensors that increase scheduling.
+		]
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/obj_function.png" width="400">
+			<figcaption>.grtext[Fig4. Objective Function]</figcaption>
+		</figure>
+		.left[
+		.grtext[
+			- where:
+			- `L0` is cross entropy.
+			- `C` is normalizing const for total size of all layers
+			- `gamma` is the compression ratio
+			- `size_k` is the penalty of the compute module (k)
+		]]
+
 		
 		---
 		class: center,top
 		## Architecture
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/ou_transformer_block.png" width="800">
+			<figcaption>.grtext[Fig4. Objective Function]</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/our_architecture.png" width="800">
+			<figcaption>.grtext[Fig4. Objective Function]</figcaption>
+		</figure>
 
 
 		---
