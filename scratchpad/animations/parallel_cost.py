@@ -43,7 +43,7 @@ class VectorOpsComparison(Scene):
             block = Rectangle(height=2,width=4,color=BLUE,fill_opacity=0.2)
             # block = Square(side_length=3, color=BLUE, fill_opacity=0.2)
             block.move_to(block_positions[i])
-            block_label = Text(f"Block {i+1}", **font_style).next_to(block, UP)
+            block_label = Text(f"SharedMem Block {i+1}", **font_style).next_to(block, UP)
             blocks.add(VGroup(block, block_label))
         
         self.play(Create(blocks))
@@ -57,12 +57,12 @@ class VectorOpsComparison(Scene):
             a_segment = vector_a[start_idx:end_idx]
             b_segment = vector_b[start_idx:end_idx]
             
-            text = Text(f"A[{start_idx}:{end_idx-1}]: {a_segment}\nB[{start_idx}:{end_idx-1}]: {b_segment}", 
+            text = Text(f"A[{start_idx}:{end_idx-1}]: {a_segment}\n\nB[{start_idx}:{end_idx-1}]: {b_segment}", 
                        **font_style)
             text.move_to(blocks[i].get_center())
             data_texts.add(text)
         
-        self.play(Write(data_texts))
+        self.play(FadeIn(data_texts))
         self.wait(1)
 
         # Vector Addition - O(1)
@@ -84,7 +84,7 @@ class VectorOpsComparison(Scene):
             result = [a + b for a, b in zip(a_segment, b_segment)]
             
             result_text = Text(f"Result: {result}", **font_style, color=GREEN)
-            result_text.move_to(blocks[i].get_center() + DOWN*0.8)
+            result_text.move_to(blocks[i].get_center() + DOWN*0.85)
             result_texts.add(result_text)
             
             # Create highlight animation for each block
@@ -92,7 +92,7 @@ class VectorOpsComparison(Scene):
         
         # Play all animations simultaneously to show parallel processing
         self.play(*addition_animations, run_time=2)
-        self.play(Write(result_texts))
+        self.play(FadeIn(result_texts))
         self.wait(2)
 
         # Clear addition results
@@ -140,7 +140,7 @@ class VectorOpsComparison(Scene):
         # Step 2: Reduce across blocks (logarithmic steps)
         step2_text = Text("Step 2: Reduce across blocks (requires sequential steps)", **font_style, color=RED)
         self.play(Transform(step1_text, step2_text))
-        step2_text.to_edge(UP).shift(DOWN*1.8)
+        step2_text.to_edge(UP).shift(DOWN*1)
         self.wait(1)
 
         # Show reduction process

@@ -206,7 +206,7 @@
 		.gtext h2,
 		.gtext h3 {
 			color: #989898;
-			font-size: 0.8em;
+			font-size: 0.7em;
 		}
 
 		.ptext,
@@ -221,6 +221,13 @@
 		.btext h2,
 		.btext h3 {
 			color: #3a94c5;
+		}
+
+		.ytext,
+		.ytext h1,
+		.ytext h2,
+		.ytext h3 {
+			color: yellow;
 		}
 
 		.ortext,
@@ -385,12 +392,12 @@
 		class: center
 		# .rtext[.huerotate[Problem]]
 		### State of the art vision models dont fit on most devices.
-		#### .gtext[Significance]: Most Devices then trade throughput or accuracy.
+		#### .gtext[Significance]: Most Devices then trade .ortext[throughput] or .ortext[accuracy].
 		#### .btext[Example]: Cannot trade either on applications like wildlife/sports photography
 
 		<figure style="text-align: center;">
 			<img src="./scratchpad/presentation/autofocus.jpg" width="400">
-			<figcaption>.grtext[Example: autofocusing needs to be quick and highly accurate]</figcaption>
+			<figcaption>.grtext[Fig0: Autofocusing needs to be quick and highly accurate. Edge Devices have sizeable parallel accelerator but they end up developing their own AI system.]</figcaption>
 		</figure>
 
 
@@ -420,8 +427,12 @@
 		]
 
 		---
+		class: center,middle
+		## .gtext[Non Compressing Methods]
+
+		---
 		class: center,top
-		## .btext[Efficient VIT]
+		## .gtext[Efficient VIT]
 		<figure style="text-align: center;">
 			<img src="./scratchpad/presentation/efficientvit1.png" width="600">
 			<figcaption>.grtext[Fig1. Local Module]</figcaption>
@@ -444,7 +455,7 @@
 
 		---
 		class: center,top
-		### .btext[LayerDrop]
+		### .gtext[LayerDrop]
 
 		<figure style="text-align: center;">
 			<img src="./scratchpad/presentation/LayerDrop.png" width="800">
@@ -453,22 +464,25 @@
 
 		.left[
 		- Like `nn.Dropout` but on entire layers.
-		- Each layer is assigned a learnable probability of skipping.
+		- Each layer is tied to a learnable probability of skipping.
 		- The probability term is trained alongside the weights of the model.
-		- .gtext[Extract Graphs given on compute capability.]
+		- .gtext[Extract Sub-Graphs given compute capability.]
 		- .rtext[Mostly on Benificial For very Deep Layers]
 		]
 
+		---
+		class: center,middle
+		## .btext[Self-Compressing Methods]
 
 		---
 		class: center,top
 		### .btext[DiffQ]
 		<figure style="text-align: center;">
 			<img src="./scratchpad/presentation/diffq.png" width="800">
-			<figcaption>.grtext[Fig3. LayerDrop]</figcaption>
+			<figcaption>.grtext[Fig4. Quantization in DiffQ]</figcaption>
 		</figure>
 		.left[
-		- Provides Complete End to End Differentiable Quantization.
+		- Provides Complete End to End Differentiable Quantized Training Method.
 		- Introduces Noise after activation which has the standard error uniform over the interval of a single quantization
 		bin, matching the distribution of a standard error of round-to-nearest operation.
 		- .gtext[Noise is supposed to counter the effects of standard Straight through Estimators]
@@ -482,20 +496,23 @@
 		### .btext[Self Compressing Convolutions]
 		<figure style="text-align: center;">
 			<img src="./scratchpad/presentation/selfCompressingConvolution.png" width="400">
-			<figcaption>.grtext[An overview of the number of weight channels in
+			<figcaption>.grtext[Fig5. An overview of the number of weight channels in
 				the example classification network before (top) and after
 				(bottom) applying Self-Compression.]</figcaption>
 		</figure>
 		.left[
-		- It offers a direct alternative to noise-based methods like DiffQ by parameterizing bit-depth as a trainable
-		parameter like LayerDrop.
-		- Uses a tempered sigmoid gate to smoothly reduce bit-depth to zero, pruning weights or channels.
-		- Employs coarse, mode-level grouping for stability and reduced catastrophic forgetting.
-		- Treats scale, exponent, and bit-depth as optimizable parameters; uses STE instead of noise injection.
+		- Works on limitations of DiffQ and make bit-depth as trainable parameter like layerdrop.
+		- allows unified compression and pruning technique.
+		- Still use STE instead of learnable noise.
 		- .rtext[Study only performs this on convolution modules]
-		- .gtext[the idea can be extended beyond convolutions to
-		compress attention, transposed convolutions, and linear projections.]
+		- .gtext[The idea can be extended beyond convolutions to compress attention, transposed convolutions, and linear projections.]
 		]
+
+		---
+		class: center,middle
+		## .ptext[.huerotate[Hypothesis]]
+		Need for uniform allocation of model precision and compute cost across vision model depth.
+
 
 		---
 		class: center,top
@@ -523,7 +540,7 @@
 		.left[
 		1. .gtext[Quantization Approach]
 		2. .btext[Objective Function]
-		3. .ptext[Implement on Architecture]
+		3. .ptext[Architecture]
 		]
 
 		---
@@ -571,16 +588,16 @@
 		Also called as pass through gradient.
 		or Straight Through Estimator.
 		"""
-			@staticmethod
-			def forward(ctx,x):
-			return torch.round(x)
+		@staticmethod
+		def forward(ctx,x):
+		return torch.round(x)
 
-			@staticmethod
-			def backward(ctx,upstream):
-			"""
-			local jacobian is 1.
-			"""
-			return upstream
+		@staticmethod
+		def backward(ctx,upstream):
+		"""
+		local jacobian is 1.
+		"""
+		return upstream
 
 		```
 		]
@@ -604,12 +621,12 @@
 
 
 		---
-		class:center,top
+		class:center,middle
 		## .btext[Objective Function]
 		.left[
 		1. Penalizing Factor
 		2. Loss Function
-			]
+		]
 
 		---
 		class:center,top
@@ -617,11 +634,13 @@
 		.left[
 		- Self Compressing Conv Study penalizes the shape of the matrices.
 		- we diverge from the study and penalize the cost of the operation.
-		- this cost is designed to be almost trivially proportional to the step complexity of the operation in a parallel accelerator.
-		- For an example:
+		- this cost is designed to be almost trivially proportional to the step complexity of the operation in a parallel
+		accelerator.
+		- For an example both vec-vec addition and a vec reduction is a O(n) operation in cpu program.
+		- But in a parallel accelerator vec-vec addition has higher throughput.
 
-					]
-		
+		]
+
 		---
 		class:center,top
 
@@ -634,79 +653,249 @@
 		## .btext[Penalizing Factor]
 		.left[
 		- so we have added penalty if the compute module performs reduction over shared block memory.
-		- or else we penalize modes of tensors that increase scheduling.
+		- and we will penalize modes of tensors that increases the latency of scheduling.
 		]
 		<figure style="text-align: center;">
 			<img src="./scratchpad/presentation/obj_function.png" width="400">
-			<figcaption>.grtext[Fig4. Objective Function]</figcaption>
+			<figcaption>.grtext[Eq1. Objective Function]</figcaption>
 		</figure>
 		.left[
 		.grtext[
-			- where:
-			- `L0` is cross entropy.
-			- `C` is normalizing const for total size of all layers
-			- `gamma` is the compression ratio
-			- `size_k` is the penalty of the compute module (k)
+		- where:
+		- `L0` is cross entropy.
+		- `C` is normalizing const for total size of all layers
+		- `gamma` is the compression ratio
+		- `size_k` is the penalty of the compute module (k)
 		]]
 
-		
+
 		---
 		class: center,top
-		## Architecture
+		## .ptext[Architecture]
 		<figure style="text-align: center;">
 			<img src="./scratchpad/presentation/ou_transformer_block.png" width="800">
-			<figcaption>.grtext[Fig4. Objective Function]</figcaption>
+			<figcaption>.grtext[Fig6. Transformer Block: local module -> context module]</figcaption>
 		</figure>
 		<figure style="text-align: center;">
 			<img src="./scratchpad/presentation/our_architecture.png" width="800">
-			<figcaption>.grtext[Fig4. Objective Function]</figcaption>
+			<figcaption>.grtext[Fig7. Architecture]</figcaption>
 		</figure>
+		.left[
+		- Like Efficient VIT our architecture has composition of convolution for local Module
+		- And linear attention for context/global module.
+		- Local Module is expected to capture local inductive biases and Context Module to find relations between distant pixels.
+		- Return Logits as needed depending on the dense prediction task.
+		]
 
 
 		---
 		class: center,top
-		## Compute Model Convolution
+		## Local and Global Module
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/ou_transformer_block.png" width="800">
+			<figcaption>.grtext[Fig6. Transformer Block: local module -> context module]</figcaption>
+		</figure>
+		.left[
+		#### .gtext[Local Module]
+		- Follows Inverted Bottleneck structure [MobileNet V2]
+		- That is the expand and the projection stage use smaller kernels (3x3) while everything in the middle uses larger.(5x5)
+		]
+
+		.left[
+		.grtext[
+		- where:
+		- ConvT : Transposed Convolution for upscaling features
+		- ConvD : Depthwise Convolution for cheap convolution on upscaled features
+		]]
+		.left[
+		#### .btext[Global Module]
+		- Single Linear Attention in a transformer block
+		]
+
+		
+		---
+		class: center,middle
+		## Convolution Heuristics
+		.left[
+		- Tying Bit-Depths and
+		- .rtext[Irreversible Forgetting]
+		
+		]
+		
+		---
+		<video width="1200" ,height:"1080", controls>
+			<source src="./scratchpad/presentation/mid-term/compressKernels.mp4" type="video/mp4">
+		</video>
 
 
+		---
+		class: center,top
+			### Penalizing Convolution
+		.left[
+		- Convolution is a highly parallelizable operation.
+		- Convolution can be parallelized by launching multiple windows independently as needed. Each window’s computation and async-copy and write can be completed entirely within a single shared memory block, resulting in a parallel depth complexity of O(1).
+		- Scheduling increases with spatial resolution (H,W) and input features (I)
+		- This cost also happens to be equal to the storage cost of the kernels.
+			]
+
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/size_conv.png" width="400">
+			<figcaption>.grtext[Eq2: Layer Size Convolution]</figcaption>
+		</figure>
+		.left[
+		- .grtext[Suppose H,W,I,O stands for spatial resolution (height and width) and the input and the output feature maps]
+		- .grtext[Then a convolutional kernel of shape (O, I, k, k) performs O(I · H · W · k^2) operations (MACs).]
+			
+		]
+		
 		---
 		class: center,top
 		## DepthWise Convolution
+		.left[
+		<!-- - A Depthwise or grouped convolution kernel does less work than an ungrouped convolution kernel. -->
+		<!-- - Then a kernel of shape (O, I, k, k) performs O(I/G · H · W · k^2) operations (MACs). -->
+		<!-- - .grtext[where G is number of groups. I=G is a special grouped convolution which is also called depthwise convolution kernels.] -->
+		- since a depthwise convolution kernel weight is independent of input features we use it for expand features so that it is independent of embedding dimension and after tranposed convolution as depthwise convolution has higher throughput with increased resolution (see Fig6).
+			]
+
+		<figure style="display: flex; flex-direction: column; align-items: center;">
+		    <div style="display: flex; gap: 10px;">
+		        <img src="./scratchpad/presentation/throughput_conv.png" width="300">
+		        <img src="./scratchpad/presentation/throughput_transposed_conv.png" width="300">
+		    </div>
+		    <figcaption>Fig8. Depthwise Convolution has higher throughput|Higher is better</figcaption>
+		</figure>
+
+		
+		---
+		class: center,middle
+		## Linear Attention
+		.left[
+		1. Throughput comparision of linear and softmax attention
+		2. Favourable Tradeoff of linear attention 
+		]
 
 		---
 		class: center,top
-		## Transposed Convolution
+		## Softmax Attention
+
+		<figure style="display: flex; flex-direction: column; align-items: center;">
+		    <div style="display: flex; gap: 10px;">
+		        <img src="./scratchpad/presentation/similarity.png" width="300">
+		        <img src="./scratchpad/presentation/softmaxAttn.png" width="300">
+		        <img src="./scratchpad/presentation/linearAttn.png" width="300">
+		    </div>
+		    <figcaption>Eq3: Attention Calculation</figcaption>
+		</figure>
+		.left[
+		- Full softmax attention captures both local and global features
+		- But is More Expensive than some other compute modules that calculate global features.
+		- we expect that local features have already been captured by local modules (conv)
+		]
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/throughput_attention.png" width="300">
+			<figcaption>.grtext[Fig9 Full Softmax Attention is Expensive| Higher is better]</figcaption>
+		</figure>
 
 		---
 		class: center,top
 		## Linear Attention
 
+		<figure style="display: flex; flex-direction: column; align-items: center;">
+		    <div style="display: flex; gap: 10px;">
+		        <img src="./scratchpad/presentation/similarity.png" width="300">
+		        <img src="./scratchpad/presentation/softmaxAttn.png" width="300">
+		        <img src="./scratchpad/presentation/linearAttn.png" width="300">
+		    </div>
+		    <figcaption>Eq3:Attention Calculation</figcaption>
+		</figure>
+		.left[
+		#### Improvements from the choice of Similarity Function
+		- Full Softmax Attention uses softmax to calculate attention score.
+		- But Online Softmax is linear in Sequence Length. And requires accumulation across shared memory blocks to safely calculate `exp^(logit -logit.max)`.
+		- Instead of normalized score , researchers use an approximation with a cheaper O(1) activation like `relu`
+		]
 
 		---
 		class: center,top
+		## Linear Attention
+
+		<figure style="display: flex; flex-direction: column; align-items: center;">
+		    <div style="display: flex; gap: 10px;">
+		        <img src="./scratchpad/presentation/similarity.png" width="300">
+		        <img src="./scratchpad/presentation/softmaxAttn.png" width="300">
+		        <img src="./scratchpad/presentation/linearAttn.png" width="300">
+		    </div>
+		    <figcaption>Eq3: Attention Calculation</figcaption>
+		</figure>
+		.left[
+		- ##### Improvements from Associativity
+		- Q,K,V : R:N -> d
+		- so `Q@K.T` makes it Quadratic on Spatial Resolution.
+		- alternative is to perform `K.T @ V` which makes it quadratic on head dimension.
+		- since head dimension is significantly smaller than spatial resolution we see sizeable improvement in throughput.
+
+		]
+
+		---
+		class: center,top
+		## Penalizing Linear Attention
+		<figure style="display: flex; flex-direction: column; align-items: center;">
+		    <div style="display: flex; gap: 10px;">
+		        <img src="./scratchpad/presentation/similarity.png" width="300">
+		        <img src="./scratchpad/presentation/softmaxAttn.png" width="300">
+		        <img src="./scratchpad/presentation/linearAttn.png" width="300">
+		    </div>
+		    <figcaption>Eq3: Linear Attention</figcaption>
+		</figure>
+
+		<figure style="display: flex; flex-direction: column; align-items: center;">
+		    <div style="display: flex; gap: 10px;">
+		        <img src="./scratchpad/presentation/size_attn1.png" width="450">
+		    </div>
+		    <figcaption>Eq4: Sum of all Weights of a head</figcaption>
+		</figure>
+		<figure style="display: flex; flex-direction: column; align-items: center;">
+		    <div style="display: flex; gap: 10px;">
+		        <img src="./scratchpad/presentation/size_attn2.png" width="450">
+		    </div>
+		    <figcaption>Eq5: Attention Penalty </figcaption>
+		</figure>
+
+		.left[
+		- we tie bit-depth to each attention head.
+		- Each Tiled MMA can be done as binary-tree reduction which makes it logarithmic in depth in parallel accelerators.
+		]
+		
+
+
+		---
+		class: center,middle
 		## Ablation Studies
 
+		<figure style="display: flex; flex-direction: column; align-items: center;">
+		    <div style="display: flex; gap: 10px;">
+		        <img src="./scratchpad/presentation/ou_transformer_block.png" width="450">
+		    </div>
+		    <figcaption>Fig7: Architecture </figcaption>
+		</figure>
+		.left[
+		1. Pixel Shuffling vs Transposed Convolution
+		2. Pointwise vs 3x3 Convolution kernels
+		3. Sequential vs Parallel execution of Context Module with Local Module
+		]
+
 
 		---
-		class: center,top
+		class: center,middle
 		## Pixel Shuffling vs Transposed Convolution
-
-
-		---
-		class: center,top
-		## Pointwise Convolution
-
-		---
-		class: center,top
-		## Parallel Execution of linear attention
-
+		.grtext[We observed no pruning of expansion convolution which have higher output feature maps]
 
 		---
 		class:center,top
-
 		<video width="1200" ,height:"1080", controls>
 			<source src="./scratchpad/presentation/PixelShuffling.mp4" type="video/mp4">
 		</video>
-
 
 		---
 		class:center,top
@@ -714,132 +903,315 @@
 			<source src="./scratchpad/presentation/ShufflingProblem.mp4" type="video/mp4">
 		</video>
 
-
-
-
-
-
-
-
+		
 		---
-		class:split-slide
-		.lc[
-		# Training Objective
-		- we will penalize our model by the current size of the model.
-		- the current size is given by the sum of the layer size of the targeted "quantized" modules.
-		- This also acts as a regularization term. (like the l1 loss which gets penalized by the sum of model's
-		`abs(weights)`)
-
-		]
-
-		.rcb[
-		```py
-		with torch.autocast(device_type="cuda",
-		dtype=self.amp_dtype):
-
-		out = self.model(batch_img)
-		# end of fwd pass
-		# current size of model / init size of model
-		bit_decay = self._qlayersize()
-		/ self.qtot_init
-		# add penalty term
-		loss = cross_entropy(out,batch_label)
-		+ self.gamma * bit_decay
-		```
-		]
-
-
-		---
-		class:split-slide
-		.lc[
-		# Compression Heuristics Needed
-		> In my project plan i proposed a model with convolution in skip connections to aid linear attention improve its
-		local inductive bias (which also had some full softmax attention at the start of the layer)
-
-		1. Convolution Heuristics (We get for free from the article, authors did not release code)
-		2. nn.Linear (Done)
-		3. Full Softmax Attention (Decided on Heuristics, not implemented yet)
-		4. Linear Attention (Not decided on Heuristics)
-		]
-
-		.rc0[
-
-		<div class="mermaid">
-			graph TD
-			I[Img] --> A[Embed] --> B(•)
-			B --> C[Softmax Attn]
-			C --> D[Lin Attn* x]
-			D --> L(•)
-			B -- skip connection --> E[QConv]
-			E --> L
-			L -- repeat n times --> Z[Logits]
-		</div>
-		##### Proposed Model Architecture
-		.breathe[.rtext[we will make few changes]]
-
-		*Linear x times so that profiling time for Qconv is similar to Full Softmax + linear Attn*
-		]
-
+		class: center, middle
+		### Pointwise Convolution
+		.left[
+		- Quantized 1×1 kernels (≤4-bit) showed unstable initialization: feature collapse.  
+		- we saw no significant degradation in throughput when comparing quantized 3x3 vs un-quantized 1x1 kernels.
+			]
 
 		---
 		class: split-slide
+		.lc0[
+		### Parallel Execution of linear attention
+		- we observed poor gpu occupancy in parallel execution compared to sequential.
+		- although linear attention is fast . convolutions are faster.
+		- convolution threads idle for linear attention for final accumulation.
 
-		.lc[
-		# Convolution Heuristics
-		- We tie a quantization function to each kernel see `__init__`
-		- Calculating Size layer which contributes to the penalty term is proportional to the actual active size of the
-		layer. see `size_layer()`
-		```py
-		# a much more accurate size would have been
-		size_layer = prods* torch.where(self.b>0,1,0)
-		# but the above only promotes sparsity.
-		#+ (sum of bit depth) promotes both compression and sparsity
-		```
-		- We Quantize the weights of the layer every forward pass. see `__call__`
-		- Bad training batches can result in "irreversible" forgetting
+		<figure style="display: flex; flex-direction: column; align-items: center;">
+		    <div style="display: flex; gap: 10px;">
+		        <img src="./scratchpad/presentation/throughput_conv.png" width="300">
+		        <img src="./scratchpad/presentation/throughput_attention.png" width="300">
+		    </div>
+		    <figcaption>Fig8. Depthwise Convolution has higher throughput|Higher is better</figcaption>
+		</figure>
+
+		]
+		.rc2[
+		<div class="mermaid">
+			graph TD
+			I[Img] --> A[Embed] --> B(•)
+			B --> C[Linear Attn]
+			C --> L(•)
+			B --> E[Convolutions]
+			E --> L
+			L -- repeat n times --> Z[Logits]
+		</div>
+		Linear Attention in parallel branch
 		]
 
-		.rcb[
-		```py
-		class Qconv(torch.nn.Module):
-		"""
-		weight tying exp_bits and depth_bits
-		1 per out_channel
-		"""
-		def __init__ (self,...):
-		...
-		# 1 for each kernel (out_channel)..
-		self.exp_bit =
-		torch.ones(out_channels,1,1,1)*e
-		self.depth_bit =
-		torch.ones(out_channels,1,1,1)*b
-		...
+		---
+		class: center,middle
+		## Experiments
+		.left[
+		1. Setup
+		2. Implementation
+		3. Datasets
+		4. Results
+		]
 
-		def size_layer(self):
-		prods = torch.as_tensor(
-		self.weight.shape[1:])
-		# height * width * sum of depths
-		-> size = torch.prod(prods) *
-		torch.sum(torch.relu(self.depth_bit))
-		return size
+		---
+		class: center, top
+		### Setup(Target Device and Throughput Measurement)
+		.left[
+		- we use NVIDIA 4070 as our inference device and for profiling throughput of modules.
+		- Throughput measured at FP32 for a fixed batch size.
+		- we also make efforts in incorporating fused kernels for both training and inference time.
+		- Inference time :For Compute-bound kernels (linear attention) we modify an off the shelf implementation to encorporate our quantization approach.
+		- Training Time: For memory bounded kernels (top-k and cross-entropy) we use off-the shelf implementation as distributed.
+		]
 
-		def __call__(self,x):
-		# quantize every forward pass
-		W = self._quantized_weight()
-		return F.conv2d(x,W,padding=self.padding)
-		```
+		
+		---
+		class:center,top
+		### Setup(Implementation)
+		.left[
+		- Implemented in PyTorch and Cutlass-dsl.
+		- Optimization: AdamW (β₁=0.9, β₂=0.999, ϵ=1e−8, weight decay=0.01).
+		- Learning rate: cosine decay from 1e−3 to 1e−5; compression coefficient γ ramps from 0.1 → 0.2 on separate schedule.
+		- Initialized parameters to simulate 4-bit precision for stable quantization-aware training.
+		- Trained up to 1000 epochs with early stopping (patience=50, min. delta=0.01).			
+		]
+
+
+		---
+		class:center,top
+		### Dataset(CUB200) : Classification
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/cub200.png" width="800">
+			<figcaption>.grtext[Fig10: Dataset: **CUB-200-2011** with 200 bird species. ]</figcaption>
+		</figure>
+		.left[
+		- Total: 11,788 images (\~6k train, \~5.8k test).
+		- Average resolution: \~500×500 pixels.
+		- Requires detecting subtle visual differences between species.(heavy local inductive biases)
 		]
 
 		---
 		class:center,top
+		### Dataset(Country211) : Classification
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/country211.png" width="800">
+			<figcaption>.grtext[Fig11 Images From the Same Country Class 0]</figcaption>
+		</figure>
+		.left[
+		- Dataset: **Country211** from the YFCC100M corpus.
+		- \~63,000 images; 150 train, 50 validation, 100 test per country.
+		- Covers **211 countries**; sourced from Wikimedia Commons and other Creative Commons repositories.
+		- High variation in resolution, composition, and quality; tests recognition of global context and long-term memory capability of our architecture.
+	
+		]
 
-		<video width="1200" ,height:"1080", controls>
-			<source src="./scratchpad/presentation/mid-term/compressKernels.mp4" type="video/mp4">
-		</video>
+		
+		---
+		class:center,top
+		### Dataset(ade20k): Segmentation
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/ade.png" width="800">
+			<figcaption>.grtext[Fig12: ADE20K Dataset Input Image and Ground Truth Seg Mask]</figcaption>
+		</figure>
+		.left[
+		* Dataset: **ADE20K** with \~20k training and \~2k validation images.
+		* Dense pixel-level annotations across **150 semantic categories**.
+		* All images downscaled to match classification benchmark resolution for consistency.
+		* Tests model’s dense prediction and structured output performance in complex scenes.
+		]
+		
+		---
+		class:center,top
+		### Dataset(hd1k): Optical Flow Problem
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/hd1k.jpeg" width="500">
+			<figcaption>.grtext[Fig13: Driving DataFrames from HD1k]</figcaption>
+		</figure>
+		.left[
+		- Dataset: **HD1K** with 1,066 high-definition (1920×1080) video frames.
+		- Includes dense ground truth flow fields from real-world driving scenarios.
+		- Challenges: large displacements, motion blur, occlusions, and complex lighting.
+		- Frames resized to 448×448 for consistency, testing robustness under domain shift and resolution change.
+				]
 
 		---
 		class:center,middle
-		# End of slides
+		### Processing Datasets
+		.left[
+		- All datasets are publicly available.
+		- Used standard train/validation/test splits without modifications or filtering.
+		- Minimal preprocessing applied.
+		- Images normalized using dataset-specific statistics.
+		- All images resized to 448×448 pixels with bilinear interpolation for consistency.
+					]
+
+		---
+		class:center,top
+		### Evaluation Metrics
+		.left[
+		.btext[Task Specific]
+		- **Classification Accuracy**: Top-1 (highest-confidence match) and Top-5 (ground truth in top 5 predictions); relevant for fine-grained classification.  
+		- **Segmentation Quality (mIoU)**: Mean IoU across classes; balances boundary accuracy and correct categorization.  
+		- **Optical Flow Accuracy (EPE)**: Average Euclidean distance between predicted and ground truth flow vectors; lower is better.  
+		]
+		.left[
+		.ptext[Throughput Specific]
+		- **Theoretical Complexity (FLOPS)**: GFLOPS for a single forward pass; architecture-independent measure of computational demand.  
+		- **Practical Throughput (Images/sec)**: Measured on NVIDIA RTX 4070 Mobile; includes all data loading and processing overhead for realistic deployment performance.  
+		]
+
+		
+		---
+		class:center,top
+		### Evaluation on CUB200
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/table_cub.png" width="800">
+			<figcaption>.grtext[Table1: CUB200 Results]</figcaption>
+		</figure>
+
+		.left[
+		- We match or improve Top-1 and Top-5 accuracy across all model sizes against Efficient VIT. 
+		- Smallest and Largest model (0.88M, 4.68M parameters) achieves highest accuracy and significant improvement in throughput.  
+		- Larger models match EfficientViT accuracy while improving computational efficiency.  
+		- Demonstrates parameter-efficient, high-throughput performance on .ortext[local-inductive heavy] classification.  
+		]
+
+
+		---
+		class:center,top
+		### Evaluation on Country211
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/table_country211.png" width="800">
+			<figcaption>.grtext[Table2: Country211 Results]</figcaption>
+		</figure>
+		.left[
+		- we match accuracy and improve throughput (for both sizes) compared to efficient vit.
+		- Score remains poor across all the baselines.
+		]
+
+		---
+		class:center,top
+		### Evaluation on ADE20k
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/table_ade.png" width="800">
+			<figcaption>.grtext[Table3: ADE20K Results]</figcaption>
+		</figure>
+
+		.left[
+		- Maintains competitive mIoU (43.7 vs 44.1 EfficientViT) under compression.  
+		- Achieves highest throughput (282 images/sec), improving inference speed.  
+		]
+
+		---
+		class:center,top
+		### Evaluation on HD1k
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/table_hd1k.png" width="800">
+			<figcaption>.grtext[Table4: HD1k Results]</figcaption>
+		</figure>
+		.left[
+		- slightly poor EPE than Efficient VIT (5.0 vs 4.8)
+		- But we still improve upon throughput.
+		]
+
+		
+		---
+		class:center,top
+		### Pruning Trends (CUB200 1.98M Model)
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/pruning.png" width="800">
+			<figcaption>.grtext[Fig14: Module Pruning]</figcaption>
+		</figure>
+
+		.left[
+		- Convolutional Kernels: gradual pruning after ~300 epochs, accelerating 500–750 epochs; ~4.5% reduction.  
+		- Transposed Convolutions (Upscaling): minimal pruning, 1.2% reduction; critical for reconstruction.  
+		- Attention Heads: stable until ~750 epochs, then sharp drop; ~21.9% reduction, most aggressive pruning.  
+		- Overall: attention and convolutional layers pruned substantially, upscalers minimally; preserves spatial resolution.  
+		]
+
+
+		
+		---
+		class:center,top
+		### Compression Trends (CUB200 1.98M Model)
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/bitdepth.png" width="800">
+			<figcaption>.grtext[Fig15: Model Compression]</figcaption>
+		</figure>
+		.left[
+		- Average Bit-Depth: starts ~4.3 bits, gradually decays to ~3.0 bits; smooth adaptation over training.  
+		- Heterogeneous Allocation: embedding layer retains highest precision (~5 bits), deeper layers lower (~2 bits), mid-layers moderate (~3–4 bits).  
+		- Early layers and embeddings sensitive to precision; deeper layers tolerate aggressive quantization.  
+		- Network converges to mixed-precision: high precision in feature extraction, aggressive compression in deeper processing layers.  
+		]
+
+		---
+		class:center,middle
+		#### Question 1. Can we develop a unified, self-compressing vision architecture that prunes and compresses model components based on their computational cost, rather than applying a uniform approach?
+
+
+		.gtext[Yes, We mostly match accuracy against current state of the art and the compute modules both compress and prune by using depthwise complexity as the penalizing factor.]
+		
+
+		---
+		class:center,middle
+		#### Question 2. Does this selective compression strategy maintain or improve model performance on dense prediction tasks, such as fine-grained classification, semantic segmentation, and optical flow, compared to state-of-the-art non-compressed models?
+
+		.gtext[Other than Optical Flow Problem, We either match or improve upon the evaluation metric.]
+
+
+
+		---
+		class:center,middle
+		#### Question 3. How do the storage requirements and inference throughput of our self-compressing model compare to existing models like EfficientViT and DiffQ on a given hardware target?
+
+		.gtext[Yes,The Models were intialized at roughly the same shape but with pruning and compression we save on model checkpoint size.]
+
+
+		---
+		class:center,middle
+		#### Question 4. Can the compression process itself serve as a tool for inspecting the relative importance of different modules across model layers, thereby enabling better architectural design?
+
+		<figure style="text-align: center;">
+			<img src="./scratchpad/presentation/bitdepth.png" width="800">
+			<figcaption>.grtext[Fig15: Model Compression]</figcaption>
+		</figure>
+		.gtext[Yes, Deeper Layers require less precision but still produces accurate results.]
+
+		---
+		class:center,middle
+		### Limitations
+		.left[
+		- **Latency Optimization**: Observe no improvement in throughput during training , as we compile the graph only once (to combat against irreversible forgetting)
+		- **No Large Model**: scaling study across Small, Base, Large models needed.  
+		- **Task Generality**: Validated on three tasks only; extending to object detection, video understanding, and more could prove broader applicability.  
+		]
+
+		---
+		class:center,middle
+		### Future Studies
+		.left[
+		- Develop training framework with just-in-time graph recompilation to optimize evolving sparse architectures during training.  
+		- Investigate scalability across multiple model sizes (Small, Base, Large) to validate generalizability.  
+		- Co-design compression algorithms with a better target hardware for real-world deployment efficiency.  
+		- Extend the study to broader vision tasks: object detection, instance segmentation, video analysis.  
+		]
+
+		---
+		class:center,middle
+		### Conclusion
+		.left[
+		- Developed a self-compressing vision tower that prunes and quantizes convolutions, transposed convolutions, and linear attention based on computational cost.  
+		- Achieves competitive accuracy with EfficientViT on classification, segmentation, and optical flow benchmarks.  
+		- Reduces storage and FLOPs while surpassing DiffQ in accuracy and throughput.  
+		- Cost-aware compression provides insights into module importance across layers.  
+		- Facilitates efficient, interpretable, and hardware-aware model design.  
+		]
+
+
+		---
+		class:center,middle
+		# .btext[.huerotate[`<End_of_Slides>`]]
 
 		<!-- slide stuff -->
 	</textarea>
