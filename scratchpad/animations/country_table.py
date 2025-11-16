@@ -1,6 +1,8 @@
 
 from manim import *
 
+font_style = dict(font_size=20, font="Simple Nerd Font",color=BLACK)
+
 class GenerateTable(Scene):
     def construct(self):
         self.camera.background_color = WHITE
@@ -10,10 +12,10 @@ class GenerateTable(Scene):
             ["Model", "Size", "Top-1 (%) ↑", "Top-5 (%) ↑", "FLOPS (G) ↓", "Throughput (img/s) ↑"],
             ["EfficientViT", "2.41M", "44", "65", "23", "291"],
             ["DiffQ", "2.50M", "36", "41", "28", "270"],
-            ["Ours", "2.13M", "43", "65", "25", "324"],
+            ["Ours", "2.13M", "43 (2nd)", "65", "25", "324 (1st)"],
             ["EfficientViT", "4.81M", "52", "80", "48", "228"],
             ["DiffQ", "4.92M", "38", "65", "54", "213"],
-            ["Ours", "4.68M", "55", "81", "51", "294"]
+            ["Ours", "4.68M", "55 (1st)", "81", "51", "294 (1st)"]
         ]
 
         # Create table
@@ -48,7 +50,7 @@ class GenerateTable(Scene):
         everything = VGroup(table)
         
         # Scale the entire group to fit better
-        everything.scale(0.5)
+        everything.scale(0.4)
 
         # Center the group
         everything.move_to(ORIGIN)
@@ -56,7 +58,7 @@ class GenerateTable(Scene):
         self.play(Create(everything))
         
         # Add title
-        title = Text("Evaluation Results on Country Dataset", font_size=24, color=BLACK)
+        title = Text("Evaluation Results on Country211 Dataset", **font_style)
         title.to_edge(DOWN)
         self.play(Write(title))
         self.wait(2)

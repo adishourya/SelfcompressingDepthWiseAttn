@@ -1,6 +1,8 @@
 
 from manim import *
 
+font_style = dict(font_size=18, font="Simple Nerd Font",color=BLACK)
+
 class GenerateTable(Scene):
     def construct(self):
         self.camera.background_color = WHITE
@@ -10,7 +12,7 @@ class GenerateTable(Scene):
             ["Model", "Size", "EPE ↓", "FLOPS (G) ↓", "Throughput (img/s) ↑"],
             ["EfficientViT", "4.81M", "4.8", "48", "191"],
             ["DiffQ", "4.92M", "5.4", "54", "155"],
-            ["Ours", "4.68M", "5.0", "51", "227"]
+            ["Ours", "4.68M", "5.0 (2nd)", "51", "227 (1st)"]
         ]
 
         # Create table
@@ -44,7 +46,7 @@ class GenerateTable(Scene):
         everything = VGroup(table)
         
         # Scale the entire group to fit better
-        everything.scale(0.6)
+        everything.scale(0.4)
 
         # Center the group
         everything.move_to(ORIGIN)
@@ -52,7 +54,7 @@ class GenerateTable(Scene):
         self.play(Create(everything))
         
         # Add title
-        title = Text("Evaluation Results on HD1k Dataset", font_size=24, color=BLACK)
+        title = Text("Evaluation Results on HD1k Dataset", **font_style)
         title.to_edge(DOWN)
         self.play(Write(title))
         self.wait(2)

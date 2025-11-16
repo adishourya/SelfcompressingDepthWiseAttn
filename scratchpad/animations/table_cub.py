@@ -52,7 +52,7 @@ class GenerateTable(Scene):
         everything = VGroup(table)
         
         # Scale the entire group
-        everything.scale(0.45)
+        everything.scale(0.40)
 
         # Center the group
         everything.move_to(ORIGIN)
