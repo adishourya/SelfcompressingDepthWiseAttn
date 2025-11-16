@@ -1,0 +1,5 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/throughput_conv/1500p60/partial_movie_files/RealLinePlot/3163724800_511047648_2397058364.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/throughput_conv/1500p60/partial_movie_files/RealLinePlot/4045039251_843020575_347552583.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/throughput_conv/1500p60/partial_movie_files/RealLinePlot/4045039251_107609132_1892723583.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/throughput_conv/1500p60/partial_movie_files/RealLinePlot/4045039251_4145920124_2332782307.mp4'

@@ -1,0 +1,6 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/wildlife_photography/600p60/partial_movie_files/PhotoCaptureScene/3631533174_548731573_1529577534.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/wildlife_photography/600p60/partial_movie_files/PhotoCaptureScene/3942122828_2699180017_2513720444.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/wildlife_photography/600p60/partial_movie_files/PhotoCaptureScene/3942122828_3569694775_1956609297.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/wildlife_photography/600p60/partial_movie_files/PhotoCaptureScene/3942122828_173722373_2596108907.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/wildlife_photography/600p60/partial_movie_files/PhotoCaptureScene/3942122828_1219373736_2675459414.mp4'

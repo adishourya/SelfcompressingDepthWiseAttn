@@ -1,0 +1,6 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/trade_accuracy/1080p60/partial_movie_files/LowBitClipping/2743010386_2383198811_223132457.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/trade_accuracy/1080p60/partial_movie_files/LowBitClipping/3790338095_1436906429_2352303651.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/trade_accuracy/1080p60/partial_movie_files/LowBitClipping/3790338095_1391016232_2982176802.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/trade_accuracy/1080p60/partial_movie_files/LowBitClipping/3790338095_2996229070_2982176802.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/trade_accuracy/1080p60/partial_movie_files/LowBitClipping/3790338095_1219373736_1191098447.mp4'

@@ -19,6 +19,7 @@ def qbits(x, b=6.0, e=-8.0):
 class QuantizationAnimation(MovingCameraScene):
     
     def construct(self):
+
         # dont change this... [took a while to find a good value for animation]
         e_bit = -3.5
         b_bit = 3.5
@@ -128,8 +129,6 @@ class QuantizationAnimation(MovingCameraScene):
         title = Text(f"Quantization Function\n{b_bit=}, {e_bit=}",font_size=14,font="Simple Nerd Font", color = GRAY_A)
         title.to_corner(UR)
 
-        author = Text("-Adi",font_size=5,font="Simple Nerd Font")
-        author.to_corner(DL)
 
 
         # graph1_title =Text("Linspaced Input (-3,3)",font_size=20,font="Simple Nerd Font",color=ORANGE).to_corner(UL)
@@ -152,7 +151,7 @@ class QuantizationAnimation(MovingCameraScene):
         self.play(ScaleInPlace(equation,0.5))
         self.play(equation.animate.to_corner(UL))
 
-        self.play(Write(plane1),Create(ax1),Write(ax_labels),Write(title),Write(author))
+        self.play(Write(plane1),Create(ax1),Write(ax_labels),Write(title))
         self.wait(2)
         self.play(Write(graph1),Write(graph1_title))
         self.wait(2)

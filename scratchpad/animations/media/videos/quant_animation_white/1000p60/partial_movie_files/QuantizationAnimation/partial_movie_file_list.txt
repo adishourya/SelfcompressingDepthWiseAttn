@@ -1,0 +1,11 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/179565496_2840115676_631829896.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/179565496_645653655_4213936076.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/2598006007_2647725199_3530664012.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/2598006007_1476679797_4275449184.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/2598006007_981372860_2391091763.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/2560011071_3843849710_2822163401.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/2037101792_664491953_4241562366.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/1377874514_1309273881_877602984.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/3017649549_1705425807_3015609801.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/quant_animation_white/1000p60/partial_movie_files/QuantizationAnimation/3017649549_1135141467_31125466.mp4'

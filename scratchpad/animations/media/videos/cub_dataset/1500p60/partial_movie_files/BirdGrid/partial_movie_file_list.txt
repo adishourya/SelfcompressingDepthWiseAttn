@@ -1,0 +1,6 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/cub_dataset/1500p60/partial_movie_files/BirdGrid/3163724800_1050523525_223132457.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/cub_dataset/1500p60/partial_movie_files/BirdGrid/4045039251_2018013938_3410958492.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/cub_dataset/1500p60/partial_movie_files/BirdGrid/4045039251_3724084469_1654883513.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/cub_dataset/1500p60/partial_movie_files/BirdGrid/4045039251_1171453417_864369367.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/cub_dataset/1500p60/partial_movie_files/BirdGrid/4045039251_1436906429_900984960.mp4'

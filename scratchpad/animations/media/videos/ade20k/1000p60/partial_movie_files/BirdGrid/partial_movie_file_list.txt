@@ -1,0 +1,4 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/ade20k/1000p60/partial_movie_files/BirdGrid/3819638567_2123788242_223132457.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/ade20k/1000p60/partial_movie_files/BirdGrid/687764687_1180283623_755456153.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/ade20k/1000p60/partial_movie_files/BirdGrid/687764687_1436906429_4245127230.mp4'
