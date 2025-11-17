@@ -106,6 +106,12 @@
                   <a href="https://www.linkedin.com/in/guangzhi-tang-389459a0/" target="_blank">Guangzhi Tang</a>
                   <a href="https://www.linkedin.com/in/chang-sun-maastricht/" target="_blank">Chang Sun</a>
                 </span>
+
+                <span class="alignright">
+                  <a href="https://bnaic2025.unamur.be/accepted-submissions/accepted_oral/047%20-%20Self-Compressing%20Vision%20Tower%20for%20Efficient%20Dense%20Prediction%20Tasks.pdf" target="_blank">Article</a>
+                  <a href="https://github.com/adishourya/SelfcompressingDepthWiseAttn" target="_blank">Github</a>
+                </span>
+
               </p>
             </div>
           </footer>
@@ -121,7 +127,7 @@
               <!-- <figure><img class="aligncenter" src="../static/images/iphone.png" alt="iPhone"></figure> -->
               <div class="flex-content">
               <h2>Problem</h2>
-                <p class="text-intro">Big AI Models dont fit in consumer devices.</p>
+                <p class="text-intro">Big Vision Models dont fit in consumer-grade devices.</p>
               </div>
               <!-- end .flex-content-->
             </div>
@@ -206,7 +212,7 @@
           </div>
           <div class="content-right flex-content">
             <h2>Modern Consumer Devices</h2>
-            <p>Supports <a href="https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/ " >Low Bit Precision </a> which has lower risk of accuracy drop and still offers wide dynamic tensors.</p>
+            <p>Support <a href="https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/ " >Low Bit Precision </a> which has lower risk of accuracy drop and still offers wide dynamic tensors.</p>
           </div>
         </div>
       </section>
@@ -221,12 +227,12 @@
           </div>
           <div class="content-right flex-content">
             <h2>Penalize Bit Depth</h2>
-            <p><a href="https://arxiv.org/abs/2301.13142" >Work </a> have been done to penalize bit depth of Weights during Quantized Aware Training.</p>
+            <p><a href="https://arxiv.org/abs/2301.13142" >Work has been done</a> to penalize bit depth of Weights during Quantized Aware Training.</p>
 
             <!-- equation -->
           </div>
               <h5>
-                $$ q(W) = 2^{e} \, \text{round}\!\left(
+                $$ Q(W) = 2^{e} \, \text{round}\!\left(
                   \text{clip}\!\left(\frac{W}{2^{e}}, -2^{b-1}, 2^{b-1} - 1 \right)
                 \right) $$
               </h5>
@@ -268,8 +274,11 @@
            </video>
           </div>
           <div class="content-right flex-content">
+          <!-- can we not penalize compute modules that has more sequential operations in a paralle accelerator -->
             <h3>Penalize bit depth on Latency</h3>
-            <p>Two Operations with same number of FLOPS might still have varying latency.</p>
+            <p> Prior work largely emphasizes weight size; can we instead prioritize on the parallel-depth of the operation.
+            </p>
+            <!-- operations with same number of flops might still have varying latency -->
           </div>
         </div>
       </section>
@@ -289,6 +298,7 @@
               <a href="https://developer.nvidia.com/blog/using-cuda-warp-level-primitives/" target="_blank">
                 a single or a few shared memory blocks
               </a>, and supports linear scheduling on most parallel accelerators.
+              <!-- Convolution is effectively O(1) per output element on a parallel accelerator when the kernel fits in on-chip fast memory and full parallelism is utilized. -->
             </p>
           </div>
         </div>
@@ -305,7 +315,7 @@
           <div class="content-right flex-content">
             <h3>Linear Attention</h3>
             <p>
-            Not as fast as convolution but Attention is <a href="https://supaiku.com/attention-is-logarithmic"> actually logarithmic </a> on resolution. Tiled MMAs are scheduled as a binary tree on a parallel accelerator. 
+            Not as fast as convolution but Attention is <a href="https://supaiku.com/attention-is-logarithmic"> actually logarithmic </a> on resolution in a parallel accelerator. Tiled MMAs are scheduled as a binary tree. 
             </p>
           </div>
         </div>
@@ -320,22 +330,22 @@
               <source src="scratchpad/animations/media/videos/experiment_type/600p60/TYPE_EXPERIMENT.mp4" type="video/mp4">
              </video>
             </div>
-            <div class="content-right">
+            <div class="content-right vertical">
 
-              <h4> Model </h4>
-              <p> Quantize efficient vit </p>
+              <h4> 1. Model </h4>
+              <p> Quantized Efficient-VIT to be trained from scratch. </p>
               <br> <br>
 
-              <h4> Setup </h4>
-              <p> Initialize the weights to have 4 bit. </p>
+              <h4> 2. Setup </h4>
+              <p> Initialize the weights to have bit-depth of 4 bits. Penalize on parallel-time latency. </p>
               <br> <br>
 
-              <h4> Datasets </h4>
-              <p> Across Classification, segmentation and optical flow. </p>
+              <h4> 3. Tasks</h4>
+              <p> Dataset across Classification, Segmentation and Optical flow. </p>
               <br> <br>
 
-              <h4> Eval Metrics </h4>
-              <p> Across Classification, segmentation and optical flow. </p>
+              <h4> 4. Evaluation </h4>
+              <p> Accuracy score and images/sec for throughput </p>
               <br> <br>
 
             </div>
@@ -351,10 +361,9 @@
            </video>
           </div>
           <div class="content-right flex-content">
-            <h3>CUB211</h3>
-            <p>
-            Not as fast as convolution but Attention is <a href="https://supaiku.com/attention-is-logarithmic"> actually logarithmic </a> on resolution. Tiled MMAs are scheduled as a binary tree on a parallel accelerator. 
-            </p>
+            <h3> <a href = "https://www.vision.caltech.edu/datasets/cub_200_2011/">CUB2011</a></h3>
+            <p>Primarily a 200-class bird classification task, designed to challenge the model’s local inductive bias.</p>
+            <!-- since most birds look similar to the naked eye. this would challenge the models capability of finding intricate relations within close-pixels -->
           </div>
         </div>
       </section>
@@ -376,10 +385,9 @@
            </video>
           </div>
           <div class="content-right flex-content">
-            <h3>Country211</h3>
-            <p>
-            Not as fast as convolution but Attention is <a href="https://supaiku.com/attention-is-logarithmic"> actually logarithmic </a> on resolution. Tiled MMAs are scheduled as a binary tree on a parallel accelerator. 
-            </p>
+            <h3><a href="https://github.com/openai/CLIP/blob/main/data/country211.md"> Country211</a></h3>
+            <p>A 211-class country classification task, challenging the model’s global receptive field and long-term memory.</p>
+            <!-- geoguesser like task -->
           </div>
         </div>
       </section>
@@ -401,10 +409,8 @@
            </video>
           </div>
           <div class="content-right flex-content">
-            <h3>ADE20k</h3>
-            <p>
-            Not as fast as convolution but Attention is <a href="https://supaiku.com/attention-is-logarithmic"> actually logarithmic </a> on resolution. Tiled MMAs are scheduled as a binary tree on a parallel accelerator. 
-            </p>
+            <h3><a href="https://ade20k.csail.mit.edu/"> ADE20k</a></h3>
+            <p>A semantic segmentation benchmark with diverse scenes, testing the model’s ability to capture spatial context and fine-grained details.</p>
           </div>
         </div>
       </section>
@@ -426,10 +432,8 @@
            </video>
           </div>
           <div class="content-right flex-content">
-            <h3>hd1k</h3>
-            <p>
-            Not as fast as convolution but Attention is <a href="https://supaiku.com/attention-is-logarithmic"> actually logarithmic </a> on resolution. Tiled MMAs are scheduled as a binary tree on a parallel accelerator. 
-            </p>
+            <h3><a href="http://hci-benchmark.iwr.uni-heidelberg.de/">hd1k</a></h3>
+            <p>An optical flow benchmark evaluating the model’s ability to capture motion and temporal dynamics across frames.</p>
           </div>
         </div>
       </section>
@@ -462,11 +466,52 @@
           <div class="content-right flex-content">
             <h3>Bit Depth Analysis</h3>
             <p>
-            Not as fast as convolution but Attention is <a href="https://supaiku.com/attention-is-logarithmic"> actually logarithmic </a> on resolution. Tiled MMAs are scheduled as a binary tree on a parallel accelerator. 
+              Few layers gain bit depth from initialization, suggesting degraded perfomance if inference performed on FP4.             
             </p>
           </div>
         </div>
       </section>
+
+      
+        
+      <section class="bg-white">
+        <div class="wrap">
+        <div class= "content-left">
+          <img src="scratchpad/animations/computer-sad.svg" width="300">
+        </div>
+          <div class="content-right">
+            <h2>Limitations</h2>
+            <p>
+            Yet to evaluate on <a href="https://www.image-net.org/" target="_blank">Imagenet</a> and explore modeling with micro-bit dtypes such as NVFP4, MXFP4.
+            </p>
+            <!-- instead of native floating point types -->
+
+          </div>
+          <div class="content-right flex-content">
+          </div>
+        </div>
+      </section>
+
+      
+      <section class="bg-white">
+        <div class="wrap">
+
+        <div class= "content-left">
+          <img src="scratchpad/animations/computer-happy.svg" width="300">
+        </div>
+
+          <div class="content-right">
+            <h2>Conclusion</h2>
+            <p>
+            TODO
+            </p>
+          </div>
+          <div class="content-right flex-content">
+          </div>
+        </div>
+      </section>
+
+      
 
           <section>
           <h2 class="intro">End of Presentation</h2>

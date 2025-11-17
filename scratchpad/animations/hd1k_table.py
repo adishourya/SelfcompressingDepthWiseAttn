@@ -1,18 +1,15 @@
-
 from manim import *
-
-font_style = dict(font_size=18, font="Simple Nerd Font",color=BLACK)
 
 class GenerateTable(Scene):
     def construct(self):
         self.camera.background_color = WHITE
 
-        # Table data
+        # Table data - all rows have same length
         table_data = [
-            ["Model", "Size", "EPE ↓", "FLOPS (G) ↓", "Throughput (img/s) ↑"],
-            ["EfficientViT", "4.81M", "4.8", "48", "191"],
-            ["DiffQ", "4.92M", "5.4", "54", "155"],
-            ["Ours", "4.68M", "5.0 (2nd)", "51", "227 (1st)"]
+            ["Model", "Size ↓", "EPE FP32 ↓", "EPE FP8 ↓", "FLOPs (G) ↓", "Throughput FP8 (img/s) ↑"],
+            ["EfficientViT", "4.81M", "4.8", "7.2", "48", "191"],
+            ["DiffQ", "4.92M", "5.4", "5.8", "54", "155"],
+            ["Ours", "4.68M", "5.0 (2nd)", "5.2", "51", "227 (1st)"]
         ]
 
         # Create table
@@ -22,8 +19,8 @@ class GenerateTable(Scene):
         )
 
         # Set all lines to black with thinner stroke
-        table.get_horizontal_lines().set_color(BLACK).set_stroke(width=1)
-        table.get_vertical_lines().set_color(BLACK).set_stroke(width=1)
+        table.get_horizontal_lines().set_color(BLACK).set_stroke(width=0.7)
+        table.get_vertical_lines().set_color(BLACK).set_stroke(width=0.7)
 
         # Set default text color to black
         entries = table.get_entries()
@@ -46,7 +43,7 @@ class GenerateTable(Scene):
         everything = VGroup(table)
         
         # Scale the entire group to fit better
-        everything.scale(0.4)
+        everything.scale(0.35)
 
         # Center the group
         everything.move_to(ORIGIN)
@@ -54,7 +51,7 @@ class GenerateTable(Scene):
         self.play(Create(everything))
         
         # Add title
-        title = Text("Evaluation Results on HD1k Dataset", **font_style)
+        title = Text("Optical Flow Results on HD1k Dataset", font_size=20,font="Simple Nerd Font", color=BLACK)
         title.to_edge(DOWN)
         self.play(Write(title))
         self.wait(2)
