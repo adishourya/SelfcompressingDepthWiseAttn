@@ -240,6 +240,24 @@
       </section>
 
       
+      <section class="bg-white">
+        <div class="wrap">
+          <div class="content-left">
+           <video width="600" autoplay loop muted >
+            <source src="scratchpad/animations/media/videos/parallel_cost_white/1080p60/ParallelReduction.mp4" type="video/mp4">
+           </video>
+          </div>
+          <div class="content-right flex-content">
+          <!-- can we not penalize compute modules that has more sequential operations in a paralle accelerator -->
+            <h3>Penalize bit depth on Latency</h3>
+            <p> Prior work largely emphasizes weight size; can we instead prioritize on the parallel-depth of the operation.
+            </p>
+            <!-- operations with same number of flops might still have varying latency -->
+          </div>
+        </div>
+      </section>
+
+      
       
         <section class="bg-white">
           <div class="wrap">
@@ -266,22 +284,6 @@
       
 
         
-      <section class="bg-white">
-        <div class="wrap">
-          <div class="content-left">
-           <video width="600" autoplay loop muted >
-            <source src="scratchpad/animations/media/videos/parallel_cost_white/1080p60/ParallelReduction.mp4" type="video/mp4">
-           </video>
-          </div>
-          <div class="content-right flex-content">
-          <!-- can we not penalize compute modules that has more sequential operations in a paralle accelerator -->
-            <h3>Penalize bit depth on Latency</h3>
-            <p> Prior work largely emphasizes weight size; can we instead prioritize on the parallel-depth of the operation.
-            </p>
-            <!-- operations with same number of flops might still have varying latency -->
-          </div>
-        </div>
-      </section>
 
       
       <section class="bg-white">
@@ -452,6 +454,24 @@
         <!-- and then div class to have content-left or content right -->
               <!-- <p><code>.slide-top/bottom and .content-left/center/right </code></p> -->
           <!-- !!!!!!!!!!!!!!!!!!!!!! -->
+
+          
+      <section class="bg-white">
+        <div class="wrap">
+          <div class="content-left">
+           <video width="600" autoplay muted >
+            <source src="scratchpad/animations/media/videos/dual_plots/1080p60/DualLinePlots.mp4" type="video/mp4">
+           </video>
+          </div>
+          <div class="content-right flex-content">
+            <h3>Speedups</h3>
+            <p>
+            Most of the improved throughput comes from pruning of the compute modules.
+            </p>
+            <!-- unlike methods like diffq which only can compress bit depths to 1 bit. our method can also prune away unneeded compute modules.--> 
+          </div>
+        </div>
+      </section>
         
 
 
@@ -503,8 +523,9 @@
           <div class="content-right">
             <h2>Conclusion</h2>
             <p>
-            TODO
+            Self-compressing bit-depth models may enable accurate and high-throughput inference on new consumer devices.
             </p>
+            <!-- Self Compressing Bit depth models could be a way to gain high throughput with accuracy on new consumer devices. -->
           </div>
           <div class="content-right flex-content">
           </div>
@@ -513,7 +534,7 @@
 
       
 
-          <section>
+          <section class="fullscreen aligncenter">
           <h2 class="intro">End of Presentation</h2>
           </section>
 

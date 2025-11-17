@@ -1,0 +1,6 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/dual_plots/1080p60/partial_movie_files/DualLinePlots/2743010386_3543338241_223132457.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/dual_plots/1080p60/partial_movie_files/DualLinePlots/3790338095_3776371465_4229833562.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/dual_plots/1080p60/partial_movie_files/DualLinePlots/3790338095_3571586245_3544420499.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/dual_plots/1080p60/partial_movie_files/DualLinePlots/3790338095_2575577643_2794957859.mp4'
+file 'file:/Users/adi/code/SelfcompressingDepthWiseAttn/scratchpad/animations/media/videos/dual_plots/1080p60/partial_movie_files/DualLinePlots/3790338095_1219373736_2005688062.mp4'
