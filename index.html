@@ -91,24 +91,29 @@
           <header>
             <!--.wrap o <nav> = container 1200px -->
             <div class="wrap">
-              <p>20 Nov 2025 <span class="alignright"> Maastricht University </span></p>
+              <!-- <p>20 Nov 2025 <span class="alignright"> Maastricht University </span></p> -->
+              <p>20 Nov 2025 <span class="alignright"> <img src="./scratchpad/Maastricht_University_logo.svg" width="300px"> </span></p>
             </div>
           </header>
           <div class="aligncenter fadeInUp">
             <h2>Self-Compressing Vision Tower for Efficient Dense Prediction Tasks</h2>
             <p>BNAIC 2025</p>
             <h6>Speaker: Aditya Shourya</h6>
+                  Authors: 
+                  <a href="https://www.linkedin.com/in/adishourya/" target="_blank">Aditya Shourya [1],</a>
+                  <a href="https://www.linkedin.com/in/guangzhi-tang-389459a0/" target="_blank">Guangzhi Tang [1],</a>
+                  <a href="https://www.linkedin.com/in/chang-sun-maastricht/" target="_blank">Chang Sun [1,2]</a>
           </div>
           <footer class="bg-trans-black">
             <div class="wrap">
               <p>
                 <span class="alignleft">
-                  Authors: 
-                  <a href="https://www.linkedin.com/in/adishourya/" target="_blank">Aditya Shourya,</a>
-                  <a href="https://www.linkedin.com/in/guangzhi-tang-389459a0/" target="_blank">Guangzhi Tang,</a>
-                  <a href="https://www.linkedin.com/in/chang-sun-maastricht/" target="_blank">Chang Sun</a>
                 </span>
 
+                  <div style="font-size: 10px;">
+                  [1]: Department of Advanced Computing Sciences, Maastricht University <br><br>
+                  [2]: Faculty of Sciences and Engineering, Maastricht University
+                  </div>
                 <span class="alignright">
                   <a href="https://bnaic2025.unamur.be/accepted-submissions/accepted_oral/047%20-%20Self-Compressing%20Vision%20Tower%20for%20Efficient%20Dense%20Prediction%20Tasks.pdf" target="_blank">Article</a>
                   <a href="https://github.com/adishourya/SelfcompressingDepthWiseAttn" target="_blank">Github</a>
@@ -129,13 +134,15 @@
               <!-- <figure><img class="aligncenter" src="../static/images/iphone.png" alt="iPhone"></figure> -->
               <div class="flex-content">
               <h2>Problem</h2>
-                <p class="text-intro">SOTA Vision Models do not fit in consumer-grade devices.</p>
+                <p class="text-intro">SOTA Vision Models have millions of parameters so they do not fit  on consumer-grade devices <i> efficiently </i>.</p>
               </div>
               <!-- end .flex-content-->
             </div>
             <!-- end .card-50-->
           </div>
           <!-- .end .wrap -->
+
+        <p class="aligncenter" style="color: #888;font-size:1.4em">There are non-efficient ways of fitting them</p>
         </section>
 
         <!-- <section class="bg-white"> -->
@@ -151,7 +158,7 @@
           <!-- </div> -->
         <!-- </section> -->
 
-        <section class="bg-white slide-top">
+        <section class="bg-white">
           <div class="wrap">
             <div class="content-left">
              <video width="500" autoplay loop muted >
@@ -164,11 +171,12 @@
             </div>
           </div>
 
+        <p class="aligncenter" style="color: #888888;font-size:1.4em">Or</p>
         </section>
 
  
        
-        <section class="bg-white vertical slide-bottom">
+        <section class="bg-white vertical ">
           <div class="wrap">
             <div class="content-left">
              <video width="500" autoplay loop muted >
@@ -199,6 +207,8 @@
             </div>
 
           </div>
+
+        <p class="aligncenter" style="color: #888888;font-size:1.4em">We maybe in luck, since..</p>
       </section>
 
       
@@ -239,10 +249,14 @@
                 \right) $$
               </h5>
         </div>
+
+        <p class="aligncenter" style="color: #888888;font-size:1.4em">Related Work Penalize the size of the matrices.</p>
       </section>
 
       
       <section class="bg-white">
+
+        <p class="aligncenter" style="color: #bf616a;font-size:1.4em">Why can we not...</p>
         <div class="wrap">
           <div class="content-left">
            <video width="600" autoplay loop muted >
@@ -251,7 +265,7 @@
           </div>
           <div class="content-right flex-content">
           <!-- can we not penalize compute modules that has more sequential operations in a paralle accelerator -->
-            <h3>Penalize bit depth on Latency</h3>
+            <h3>Penalize bit depth on Latency Instead?</h3>
             <p> Prior work largely emphasizes weight size; can we instead prioritize on the parallel-depth of the operation.
             </p>
             <!-- operations with same number of flops might still have varying latency -->
@@ -264,7 +278,7 @@
         <section class="bg-white">
           <div class="wrap">
             <div class="content-left">
-             <video width="600" autoplay loop muted >
+             <video width="600" autoplay muted >
               <!-- <source src="scratchpad/animations/media/videos/hypothesis_type/600p60/TYPE_HYPOTHESIS.mp4" type="video/mp4"> -->
               <source src="scratchpad/animations/media/videos/eff_vit_diag/1080p60/TransformerBlockDiagram.mp4" type="video/mp4">
              </video>
@@ -275,10 +289,40 @@
             <p>
               for uniform allocation of weight bit-depth and compute latency across the depth of 
               <a href="https://github.com/mit-han-lab/efficientvit" target="_blank">
-                current state-of-the-art models
+                current state-of-the-art vision models
               </a>
-              that are often just composition of convolution and linear-attention layers?
+              ?
             </p>
+            </div>
+          </div>
+
+        <p class="aligncenter" style="color: #888888;font-size:1.4em">Research Question</p>
+        </section>
+
+        <section class="bg-white slide-top">
+          <div class="wrap">
+            <div class="content-left">
+             <video width="500" autoplay muted >
+              <source src="scratchpad/animations/media/videos/experiment_type/600p60/TYPE_EXPERIMENT.mp4" type="video/mp4">
+             </video>
+            </div>
+            <div class="content-right vertical">
+
+              <h4> 1. Model </h4>
+              <p> Current SOTA <a href ="https://github.com/mit-han-lab/efficientvit">Efficient-VIT</a> which is just a composition of convolution and linear attention. </p>
+              <br> <br>
+
+              <h4> 2. Setup </h4>
+              <p> QAT Training to have initial bit-depth of 4 bits. Penalize on parallel-time latency. </p>
+              <br> <br>
+
+              <h4> 3. Tasks</h4>
+              <p> Dataset across Classification, Segmentation and Optical flow. </p>
+              <br>
+
+              <h4> 4. Evaluation </h4>
+              <p> Accuracy score and images/sec for throughput </p>
+
             </div>
           </div>
         </section>
@@ -327,34 +371,6 @@
 
 
       
-        <section class="bg-white slide-top">
-          <div class="wrap">
-            <div class="content-left">
-             <video width="500" autoplay muted >
-              <source src="scratchpad/animations/media/videos/experiment_type/600p60/TYPE_EXPERIMENT.mp4" type="video/mp4">
-             </video>
-            </div>
-            <div class="content-right vertical">
-
-              <h4> 1. Model </h4>
-              <p> Quantized Efficient-VIT to be trained from scratch. </p>
-              <br> <br>
-
-              <h4> 2. Setup </h4>
-              <p> Initialize QAT weights to have bit-depth of 4 bits. Penalize on parallel-time latency. </p>
-              <br> <br>
-
-              <h4> 3. Tasks</h4>
-              <p> Dataset across Classification, Segmentation and Optical flow. </p>
-              <br> <br>
-
-              <h4> 4. Evaluation </h4>
-              <p> Accuracy score and images/sec for throughput </p>
-              <br> <br>
-
-            </div>
-          </div>
-        </section>
 
         
       <section class="bg-white">
@@ -372,12 +388,32 @@
         </div>
       </section>
 
-        <section class="fullscreen bg-apple aligncenter">
-         <div class="embed">
-           <video autoplay muted ">
-            <source src="scratchpad/animations/media/videos/table_cub/1080p60/GenerateTable.mp4" type="video/mp4">
-           </video>
-          </div><!-- .embed -->
+        <!-- <section class="fullscreen aligncenter"> -->
+         <!-- <div class="embed"> -->
+          <!-- <p class="aligncenter" style="color: #d08770;font-size:1.4em">Hypothesis</p> -->
+           <!-- <video autoplay muted "> -->
+            <!-- <source src="scratchpad/animations/media/videos/table_cub/1080p60/GenerateTable.mp4" type="video/mp4"> -->
+           <!-- </video> -->
+          <!-- </div><!-- .embed --> -->
+        <!-- </section> -->
+
+        
+        <section class="fullscreen aligncenter">
+           <p style="
+                position: absolute;
+                top: 2rem;
+                left: 50%;
+                transform: translateX(-50%);
+                color: #000;
+                font-size: 1.3em;
+                z-index: 10;">
+              Our Model matches Accuracy of SOTA at full precision ; without degradation at FP8 & with the fastest throughput for all sizes.
+            </p>
+          <div class="embed">
+            <video autoplay muted>
+              <source src="scratchpad/animations/media/videos/table_cub/1080p60/GenerateTable.mp4" type="video/mp4">
+            </video>
+          </div>
         </section>
 
 
@@ -397,6 +433,17 @@
       </section>
 
         <section class="fullscreen bg-apple aligncenter">
+
+           <p style="
+                position: absolute;
+                top: 2rem;
+                left: 50%;
+                transform: translateX(-50%);
+                color: #000;
+                font-size: 1.3em;
+                z-index: 10;">
+              Our Model matches Accuracy of SOTA at full precision ; without degradation at FP8 & with the fastest throughput.
+            </p>
          <div class="embed">
            <video autoplay muted ">
             <source src="scratchpad/animations/media/videos/country_table/1080p60/GenerateTable.mp4" type="video/mp4">
@@ -413,13 +460,24 @@
            </video>
           </div>
           <div class="content-right flex-content">
-            <h3><a href="https://ade20k.csail.mit.edu/"> ADE20k</a></h3>
+            <h3><a href="https://ade20k.csail.mit.edu/"> ADE20K</a></h3>
             <p>A semantic segmentation benchmark with diverse scenes, testing the model’s ability to capture spatial context and fine-grained details.</p>
           </div>
         </div>
       </section>
 
         <section class="fullscreen bg-apple aligncenter">
+
+           <p style="
+                position: absolute;
+                top: 2rem;
+                left: 50%;
+                transform: translateX(-50%);
+                color: #000;
+                font-size: 1.3em;
+                z-index: 10;">
+              Our Model matches Accuracy of SOTA at full precision ; without degradation at FP8 & with the fastest throughput.
+            </p>
          <div class="embed">
            <video autoplay muted ">
             <source src="scratchpad/animations/media/videos/ade_table/1080p60/GenerateTable.mp4" type="video/mp4">
@@ -443,6 +501,17 @@
       </section>
 
         <section class="fullscreen bg-apple aligncenter">
+
+           <p style="
+                position: absolute;
+                top: 2rem;
+                left: 50%;
+                transform: translateX(-50%);
+                color: #000;
+                font-size: 1.3em;
+                z-index: 10;">
+              Our Model matches Accuracy of SOTA at full precision ; without degradation at FP8 & with the fastest throughput.
+            </p>
          <div class="embed">
            <video autoplay muted ">
             <source src="scratchpad/animations/media/videos/hd1k_table/1080p60/GenerateTable.mp4" type="video/mp4">
@@ -504,7 +573,7 @@
           <div class="content-right">
             <h2>Limitations</h2>
             <p>
-            Yet to evaluate on <a href="https://www.image-net.org/" target="_blank">Imagenet</a> and explore modeling with micro-bit dtypes such as NVFP4, MXFP4.
+            Yet to evaluate on <a href="https://www.image-net.org/" target="_blank">larger datasets</a> and more sizes; explore modelling with micro-bit dtypes such as NVFP4, MXFP4.
             </p>
             <!-- instead of native floating point types -->
 
@@ -536,8 +605,9 @@
 
       
 
-          <section class="fullscreen aligncenter">
-          <h2 class="intro">End of Presentation</h2>
+          <!-- <section class="fullscreen aligncenter"> -->
+          <section>
+          <h2 class="aligncenter">End of Presentation</h2>
 
 
           
